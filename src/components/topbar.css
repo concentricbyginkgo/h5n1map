@@ -1,3 +1,28 @@
+.headControl {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100 !important;
+  padding-top: 20px; /* Adjust this value to match the height of your header */
+}
+
+.headControl:hover header {
+  transform: translateY(0) !important;
+  transition-delay: 0s !important;
+}
+
+.headControl header {
+  position: absolute; /* Change to absolute to stay within .headControl */
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1000 !important;
+  transition: transform 300ms ease 0s !important;
+  transition-delay: 500ms !important;
+  transform: translateY(-100%) !important;
+}
+
 img.wp-smiley,
 img.emoji {
   display: inline !important;

@@ -1,0 +1,30 @@
+.map {
+    flex: 1 1 auto !important; 
+    overflow: hidden !important; 
+    display: flex !important;
+    justify-content: center !important; /* Center the content horizontally */
+    height: 100vh !important; 
+}
+
+.mapImage {
+    height: 100vh !important;
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: auto !important;    
+}
+
+.container {
+    /* contains the sidebar and the map */
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.legend {
+    overflow: hidden;
+    margin-left: 4px;
+    margin-top: 15px; 
+}
+

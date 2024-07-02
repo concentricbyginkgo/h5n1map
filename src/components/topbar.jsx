@@ -2,8 +2,9 @@ import styles from "./topbar.css";
 
 export default function Topbar() {
 
-    return (
-        <header className="c-header headroom headroom--top headroom--not-bottom">
+  return (
+    <div className="headControl">
+      <header className="c-header headroom headroom--top headroom--not-bottom">
         <div className="language-translator">
           <div className="wrapper">
             <nav className="c-header__secondary">
@@ -192,7 +193,7 @@ export default function Topbar() {
                     <ul className="c-header__submenu c-header__flyout small-flyout">
                       <li className="c-header__item">
                         <a
-                          href="/canopy"
+                          href="https://www.ginkgobiosecurity.com/canopy"
                           className="canopy menu-item menu-item-type-custom menu-item-object-custom menu-item-4734 c-header__link"
                         >
                           <span>Ginkgo Canopy</span>
@@ -200,7 +201,7 @@ export default function Topbar() {
                       </li>
                       <li className="c-header__item">
                         <a
-                          href="/horizon"
+                          href="https://www.ginkgobiosecurity.com/horizon"
                           className="horizon menu-item menu-item-type-custom menu-item-object-custom menu-item-4735 c-header__link"
                         >
                           <span>Ginkgo Horizon</span>
@@ -218,7 +219,7 @@ export default function Topbar() {
                     <ul className="c-header__submenu c-header__flyout small-flyout">
                       <li className="c-header__item">
                         <a
-                          href="/case-studies/"
+                          href="https://www.ginkgobiosecurity.com/case-studies/"
                           className="case-studies menu-item menu-item-type-custom menu-item-object-custom menu-item-3253 c-header__link"
                         >
                           <span>Case Studies</span>
@@ -236,7 +237,7 @@ export default function Topbar() {
                   </li>
                   <li className="c-header__item ">
                     <a
-                      href="/category/all-posts/"
+                      href="https://www.ginkgobiosecurity.com/category/all-posts/"
                       className=" menu-item menu-item-type-custom menu-item-object-custom menu-item-418 menu-item menu-item-type-post_type menu-item-object-page c-header__link"
                     >
                       News
@@ -272,5 +273,6 @@ export default function Topbar() {
           </div>
         </div>
       </header>
-    );
+    </div>
+  );
 }      
