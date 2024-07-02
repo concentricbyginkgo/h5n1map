@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# County Codes:
 
-## Getting Started
+[./data/countycodes.csv](./data/countycodes.csv)
 
-First, run the development server:
+Examples:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+To color two counties red (in this case Loving County and Dallas County in Texas) simply
+go to the CSS insertion point and add:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#c48301, #c48113 {fill:red}
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+To color an entire state's counties (in the case New_Mexico, with "35" being the state code) a green,
+go to the CSS insertion point and add:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+path[id*='c35'] {fill:#34A853}
 
-## Learn More
+For the U.S. Census county codes (FIPS codes) used in this file to identify individual counties, see this link:
 
-To learn more about Next.js, take a look at the following resources:
+https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The county codes used in this file combine the 2-digit state code, which is in the second column of the file
+linked above, and the 3-digit county code, which is in the third column of the file linked above. Each value
+for the "id" attribute for each county is in the following form: "c[state_code][county-code]". For example,
+for Loving Country in Texas, the state code is "48" and the county code is "301", so the id name for the
+county is "c48301".
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+County codes used in this file can also be found on Wikimedia Commons at this link:
+https://commons.wikimedia.org/wiki/File_talk:Usa_counties_large.svg/county_codes

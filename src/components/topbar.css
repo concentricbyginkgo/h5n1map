@@ -7188,7 +7188,7 @@ i {
 
 @font-face {
   font-family: Rubik;
-  src: url("/wp-content/themes/v2-concentric/resources/assets/fonts/rubik/Rubik-VariableFont_wght.ttf") format("truetype");
+  src: url("../asset/Rubik/Rubik-VariableFont_wght.ttf") format("truetype");
   font-weight: 300 600;
   font-style: normal;
 }
