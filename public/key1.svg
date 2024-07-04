@@ -1,1 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 229.88 188.32"><g id="Layer_2" data-name="Layer 2"><g id="Layer_4" data-name="Layer 4"><text transform="translate(33.4 18.58)" font-size="22" fill="#0c0a10" font-family="SofiaPro-Light, Sofia Pro" font-weight="300" opacity="0.75">Dairy <tspan x="59.38" y="0" letter-spacing="-0.04em">F</tspan><tspan x="70.07" y="0" letter-spacing="0em">arms</tspan><tspan x="0" y="41" letter-spacing="0em">C</tspan><tspan x="14.83" y="41">omme</tspan><tspan x="79.6" y="41" letter-spacing="-0.02em">r</tspan><tspan x="87.27" y="41">cial </tspan><tspan x="127.42" y="41" letter-spacing="-0.02em">P</tspan><tspan x="140.38" y="41">oultry</tspan><tspan x="0" y="82">Wild </tspan><tspan x="49.06" y="82" letter-spacing="0em">B</tspan><tspan x="62.79" y="82">i</tspan><tspan x="67.72" y="82" letter-spacing="-0.02em">r</tspan><tspan x="75.39" y="82" letter-spacing="0em">ds</tspan><tspan x="0" y="123">Wildli</tspan><tspan x="53.15" y="123" letter-spacing="-0.01em">f</tspan><tspan x="59.8" y="123" letter-spacing="0em">e</tspan></text><circle cx="12.98" cy="13.72" r="12.73" fill="#519a8f" stroke="#0c0a10" stroke-width="0.5"/><circle cx="12.98" cy="53.64" r="12.73" fill="#7653a5" stroke="#0c0a10" stroke-width="0.5"/><circle cx="12.98" cy="93.56" r="12.73" fill="#fc573e" stroke="#0c0a10" stroke-width="0.5"/><circle cx="12.98" cy="133.47" r="12.73" fill="#8fa429" stroke="#0c0a10" stroke-width="0.5"/></g></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 229.88 188.32">
+    <g id="Layer_2" data-name="Layer 2">
+        <g id="Layer_4" data-name="Layer 4">
+            <text transform="translate(33.4 18.58)" font-size="22" fill="#0c0a10"
+                font-family="SofiaPro-Light, Sofia Pro" font-weight="300" opacity="0.75">Dairy <tspan
+                    x="59.38" y="0" letter-spacing="-0.04em">F</tspan><tspan x="70.07" y="0"
+                    letter-spacing="0em">arms</tspan><tspan x="0" y="41" letter-spacing="0em">C</tspan><tspan
+                    x="14.83" y="41">omme</tspan><tspan x="79.6" y="41" letter-spacing="-0.02em">r</tspan><tspan
+                    x="87.27" y="41">cial </tspan><tspan x="127.42" y="41" letter-spacing="-0.02em">
+                P</tspan><tspan x="140.38" y="41">oultry</tspan><tspan x="0" y="82">Wild </tspan><tspan
+                    x="49.06" y="82" letter-spacing="0em">B</tspan><tspan x="62.79" y="82">i</tspan><tspan
+                    x="67.72" y="82" letter-spacing="-0.02em">r</tspan><tspan x="75.39" y="82"
+                    letter-spacing="0em">ds</tspan><tspan x="0" y="123">Wildli</tspan><tspan
+                    x="53.15" y="123" letter-spacing="-0.01em">f</tspan><tspan x="59.8" y="123"
+                    letter-spacing="0em">e</tspan></text>
+            <circle cx="12.98" cy="13.72" r="12.73" fill="#519a8f" stroke="#0c0a10"
+                stroke-width="0.5" />
+            <circle cx="12.98" cy="53.64" r="12.73" fill="#7653a5" stroke="#0c0a10"
+                stroke-width="0.5" />
+            <circle cx="12.98" cy="93.56" r="12.73" fill="#fc573e" stroke="#0c0a10"
+                stroke-width="0.5" />
+            <circle cx="12.98" cy="133.47" r="12.73" fill="#8fa429" stroke="#0c0a10"
+                stroke-width="0.5" />
+        </g>
+    </g>
+</svg>

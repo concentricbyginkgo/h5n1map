@@ -1,0 +1,31 @@
+.mapContainer {
+    flex: 1 1 auto !important;
+    position: relative;
+    display: flex;
+    min-height: 100vh !important;
+    justify-content: center;
+}
+
+.mapImage {
+    z-index: -1 !important;
+    min-height: 100vh !important;
+}
+
+.container {
+    /* contains the sidebar and the map */
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.legend {
+    overflow: hidden;
+    margin-left: 4px;
+    margin-top: 15px; 
+}
+
+.dragHandle {
+    cursor: col-resize;
+    padding: 2px !important;
+}

@@ -1,11 +1,11 @@
 import Image from 'next/image';
 import mapSvg from '../../public/map.svg';
-import styles from './map.css';
+import styles from './map.module.css';
 
 export default function Map() {
     return (
-        <div className='map'>
-            <Image src={mapSvg} alt="H5N1 Map" className='mapImage' priority={true} />
+        <div className={styles.mapContainer}>
+            <Image src={mapSvg} alt="H5N1 Map" className={styles.mapImage} priority={true} fill={true} />
         </div>
     );
 }

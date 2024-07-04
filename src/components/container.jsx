@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import Map from './map';
-import styles from './map.css';
+import styles from './map.module.css';
 
 const LegendOptions = [
     'All Cases',
@@ -11,7 +11,6 @@ const LegendOptions = [
     'Wildlife',
 ];
 
-const WildlifeDisplayLength = 14;
 const WildlifeOptions = [
     'All Species',
     'Big cat (Captive)',
@@ -50,7 +49,8 @@ export default function Container() {
     const [dragging, setDragging] = React.useState(false);
     const dragHandler = React.useRef(null);
 
-    const startDrag = () => {
+    const startDrag = (e) => {
+        e.preventDefault();
         setDragging(true);
     };
 
@@ -58,6 +58,7 @@ export default function Container() {
 
         const doDrag = (e) => {
             if (!dragging) return;
+            if (e.clientX < 200 || e.clientX > window.innerWidth - 200) return;
             setSidebarWidth(e.clientX);
         };
 
@@ -91,23 +92,45 @@ export default function Container() {
     }, []);
 
     return (
-        <div className='container'>
-            <div style={{ flex: `0 0 ${sidebarWidth}px` }} className='legend'>
+        <div className={styles.container}>
+            <div style={{ flex: `0 0 ${sidebarWidth}px` }} className={styles.legend}>
                 <h2>Legend</h2>
                 <select value={selectedLegend} onChange={handleLegendChange}>
                     {LegendOptions.map((option) => (
                         <option key={option} value={option}>{option}</option>
                     ))}
                 </select>
-                <h2>Wildlife</h2>
+                { selectedLegend == 'Wildlife' ?
+                <div className={styles.wildlifeLegend}> <h2>Wildlife</h2>
                 <select value={selectedWildlife} onChange={handleWildlifeChange}>
                     {WildlifeOptions.map((option) => (
                         <option key={option} value={option}>{option}</option>
                     ))}
                 </select>
+                { selectedWildlife == 'All Species' ?
+                <div className={styles.legendKey}><h2>Key</h2>
+                    { WildlifeOptions.slice(1).map((key) => (
+                        <div key={key} className={styles.legendItem}>
+                            <div className={styles.legendColor} style={{ backgroundColor: 'red' }} />
+                            <div className={styles.legendLabel}>{key}</div>
+                        </div>
+                    ))} 
+                </div> : null }
+                </div> : null }
+                { selectedLegend == LegendOptions[0] ? 
+                <div className={styles.legendKey}><h2>Key</h2>
+                    { LegendOptions.map((key) => (
+                        <div key={key} className={styles.legendItem}>
+                            <div className={styles.legendColor} style={{ backgroundColor: 'red' }} />
+                            <div className={styles.legendLabel}>{key}</div>
+                        </div>
+                    ))}
+                </div> : null}
             </div>
-            <div ref={dragHandler} onMouseDown={startDrag} style={{ cursor: 'col-resize', padding: '2px', background: dragging ? '#555' : '#888' }} />
-            <Map className='map' />
+
+            <div ref={dragHandler} onMouseDown={startDrag} style={{background: dragging ? '#EEE' : '#FFF' }} className={styles.dragHandle} />
+            
+            <Map className={styles.map} />
         </div>
     );
 };
