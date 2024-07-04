@@ -3,6 +3,8 @@ import React from 'react';
 import Map from './map';
 import styles from './map.module.css';
 
+import Dot from './dot.jsx';
+
 const LegendOptions = [
     'All Cases',
     'Dairy Farms',
@@ -10,6 +12,13 @@ const LegendOptions = [
     'Wild Birds',
     'Wildlife',
 ];
+
+const keyColor = {
+    'Dairy Farms': 'blue',
+    'Poultry Farms': 'green',
+    'Wild Birds': 'orange',
+    'Wildlife': 'red',
+};
 
 const WildlifeOptions = [
     'All Species',
@@ -31,6 +40,25 @@ const WildlifeOptions = [
     'White-tailed Deer'
 ];
 
+const wColor = {
+    'Big cat (Captive)': 'blue',
+    'Domestic Cat*': 'green',
+    'Bobcat': 'orange',
+    'Mountain Lion': 'red',
+    'Black Bear': 'purple',
+    'Brown Bear': 'pink',
+    'Polar Bear': 'brown',
+    'Bottlenose Dolphin': 'cyan',
+    'Grey Seal': 'magenta',
+    'Harbor Seal': 'yellow',
+    'Coyote': 'lime',
+    'Red Fox': 'teal',
+    'American Marten': 'coral',
+    'Horse': 'indigo',
+    'Moose': 'violet',
+    'White-tailed Deer': 'salmon',
+};
+
 export default function Container() {
     // map container has the controls and the key for the map
 
@@ -45,7 +73,7 @@ export default function Container() {
         setSelectedWildlife(event.target.value);
     }
 
-    const [sidebarWidth, setSidebarWidth] = React.useState(300);
+    const [sidebarWidth, setSidebarWidth] = React.useState(typeof localStorage !== 'undefined' ? parseInt(localStorage.getItem('sidebarWidth')) || 420 : 420);
     const [dragging, setDragging] = React.useState(false);
     const dragHandler = React.useRef(null);
 
@@ -91,45 +119,55 @@ export default function Container() {
         }
     }, []);
 
+
     return (
         <div className={styles.container}>
             <div style={{ flex: `0 0 ${sidebarWidth}px` }} className={styles.legend}>
-                <h2>Legend</h2>
-                <select value={selectedLegend} onChange={handleLegendChange}>
+                <h2>Avian Influenza H5N1</h2>
+                <h2>Detection in Mammals</h2>
+                <input type="radio" id="legendS" name="fav_language" value={LegendOptions[0]} onChange={handleLegendChange} size={LegendOptions.length} />
+                <ul className={styles.legendList}>
                     {LegendOptions.map((option) => (
-                        <option key={option} value={option}>{option}</option>
+                        <li key={option} ><label className={option == selectedLegend ? styles.selectedLabel : ''} key={option} value={option} onClick={() => setSelectedLegend(option)}>{option}</label></li>
                     ))}
-                </select>
-                { selectedLegend == 'Wildlife' ?
-                <div className={styles.wildlifeLegend}> <h2>Wildlife</h2>
-                <select value={selectedWildlife} onChange={handleWildlifeChange}>
-                    {WildlifeOptions.map((option) => (
-                        <option key={option} value={option}>{option}</option>
-                    ))}
-                </select>
-                { selectedWildlife == 'All Species' ?
-                <div className={styles.legendKey}><h2>Key</h2>
-                    { WildlifeOptions.slice(1).map((key) => (
-                        <div key={key} className={styles.legendItem}>
-                            <div className={styles.legendColor} style={{ backgroundColor: 'red' }} />
-                            <div className={styles.legendLabel}>{key}</div>
+                </ul>
+                {selectedLegend == 'Wildlife' ?
+                    <div className={styles.wildlifeLegend}>
+                        <input type="radio" id="wildlifeS" name="fav_language" value={WildlifeOptions[0]} onChange={handleWildlifeChange} size={WildlifeOptions.length} />
+
+                        <div className={styles.wildlifeListWrapper + ' ' + styles.border}>
+                            <ul className={styles.wildlifeList}>
+                                {WildlifeOptions.map((option) => (
+                                    <li onClick={() => setSelectedWildlife(option)} key={option} ><label className={option == selectedWildlife ? styles.selectedSubtle : ''} key={option} value={option} >{option}</label></li>
+                                ))}
+                            </ul>
                         </div>
-                    ))} 
-                </div> : null }
-                </div> : null }
-                { selectedLegend == LegendOptions[0] ? 
-                <div className={styles.legendKey}><h2>Key</h2>
-                    { LegendOptions.map((key) => (
-                        <div key={key} className={styles.legendItem}>
-                            <div className={styles.legendColor} style={{ backgroundColor: 'red' }} />
-                            <div className={styles.legendLabel}>{key}</div>
-                        </div>
-                    ))}
-                </div> : null}
+
+                        {selectedWildlife == 'All Species' ? <div className={styles.wildlifeKeyWrapper}>
+                            <ul className={styles.wildlifeKey}>
+                                {WildlifeOptions.slice(1).map((key) => (
+                                    <li key={key} className={styles.legendItem}>
+                                        <Dot color={wColor[key]} />
+                                        <div className={styles.legendLabel}>{key}</div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div> : null}
+                        
+                    </div> : null}
+                {selectedLegend == LegendOptions[0] ?
+                    <ul className={styles.legendKey}>
+                        {LegendOptions.slice(1).map((key) => (
+                            <li key={key} className={styles.legendItem}>
+                                <Dot color={keyColor[key]} />
+                                <div className={styles.legendLabel}>{key}</div>
+                            </li>
+                        ))}
+                    </ul> : null}
             </div>
 
-            <div ref={dragHandler} onMouseDown={startDrag} style={{background: dragging ? '#EEE' : '#FFF' }} className={styles.dragHandle} />
-            
+            <div ref={dragHandler} onMouseDown={startDrag} style={{ background: dragging ? '#EEF' : '#FFF' }} className={styles.dragHandle} />
+
             <Map className={styles.map} />
         </div>
     );

@@ -17,15 +17,176 @@
     flex-direction: row;
     height: 100vh;
     overflow: hidden;
+    font-family: sofia-pro, sans-serif;
+    color: #00132f;
+    text-align: left;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.light {
+    font-weight: lighter;
 }
 
 .legend {
     overflow: hidden;
-    margin-left: 4px;
-    margin-top: 15px; 
+    margin-left: 50px;
+    margin-top: 140px; 
+}
+
+.legend h2 {
+    font-size:  2.3em;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.container input {
+    /* display all the options and inver the color scheme of the selected option */
+    display: none;
+}
+
+.legendList {
+    list-style: none;
+}
+
+.legendList li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.legendList label {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 15px;
+    cursor: pointer;
+    border: 1px solid #00132f;
+    border-radius: 15px;
+    width: 95%; /* Set a fixed width */
+    max-width: 40vw;
+    display: inline-block; /* Ensure the width is respected */
+}
+
+.selectedLabel {
+    background-color: #000000;
+    color: white;
 }
 
 .dragHandle {
     cursor: col-resize;
     padding: 2px !important;
+}
+
+.dragHandle:hover {
+    background-color: #f0f0f0 !important;
+}
+
+.legendKey {
+    font-size: 3em;
+}
+
+.legendItem {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.legendLabel {
+    display: inline-block;
+}
+
+.wildlifeKey {
+    padding-top: 15px;
+    scroll-behavior: smooth !important;
+    overflow: scroll !important;
+    max-height: 23vh;
+    scrollbar-width: none !important;
+}
+
+.wildlifeKey li {
+    margin-top: 5px !important;
+    font-size: .7em !important;
+}
+
+.wildlifeListWrapper {
+    position: relative; /* Required for the pseudo-element positioning */
+    width: 95%; /* Set a fixed width */
+    max-width: 40vw;
+    max-height: 30vh;
+    overflow: hidden; /* Hide the overflow to apply the gradient */
+}
+
+.wildlifeListWrapper::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px; /* Adjust the height as needed */
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff);
+    pointer-events: none; /* Ensure it doesn't interfere with scrolling */
+}
+
+.border {
+    border: 1px solid #00132f;
+    border-radius: 15px;
+}
+
+
+.wildlifeList {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 15px;
+    cursor: pointer;
+    width: 95%; /* Set a fixed width */
+    max-width: 40vw;
+    display: inline-block; /* Ensure the width is respected */
+    /* max display length and gradient fade out near bottom */
+    background: linear-gradient(to bottom, #ffffff, #ffffff00);
+    max-height: 30vh;
+    overflow: scroll;
+    scrollbar-width: none;
+}
+
+.wildlifeList li label {
+    cursor: pointer;
+}
+
+.selectedSubtle {
+    font-weight: 800;
+}
+
+.wildlifeKeyWrapper {
+    position: relative; /* Required for the pseudo-element positioning */
+    width: 95%; /* Set a fixed width */
+    max-width: 40vw;
+    max-height: 100vh; /* Ensure the element does not extend past the bottom of the screen */
+    overflow: auto; /* Allow scrolling if content overflows */
+}
+
+.wildlifeKeyWrapper::before,
+.wildlifeKeyWrapper::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    pointer-events: none; /* Ensure it doesn't interfere with scrolling */
+}
+
+.wildlifeKeyWrapper::before {
+    top: 0;
+    height: 20px; /* Shorter height for a more sudden gradient */
+    background: linear-gradient(to bottom, #ffffff, rgba(255, 255, 255, 0));
+}
+
+
+.wildlifeKeyWrapper::after {
+    bottom: 0;
+    height: 60px; /* Adjust the height as needed */
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff);
 }

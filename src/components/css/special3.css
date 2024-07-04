@@ -339,7 +339,7 @@
     text-shadow: none !important;
   }
   a,   a:visited {
-    text-decoration: underline;
+    text-decoration: none;
   }
   a[href]::after {
     content: " (" attr(href) ")";
@@ -1091,7 +1091,7 @@
     background-color: transparent !important;
     padding: 0px !important;
     border: none !important;
-    text-decoration: underline 2px rgb(89, 62, 187) !important;
+    text-decoration: none !important;
     text-underline-offset: 0.5rem !important;
   }
 }
