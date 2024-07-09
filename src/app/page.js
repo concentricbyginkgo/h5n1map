@@ -1,5 +1,5 @@
-import Topbar from "@/components/topbar";
-import Container from "@/components/container";
+import Topbar from "@/components/topbar/topbar";
+import Container from "@/components/container/container";
 
 export default function Home() {
   return (

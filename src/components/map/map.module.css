@@ -1,0 +1,28 @@
+.mapContainer {
+    flex: 1 1 auto !important;
+    position: relative;
+    display: flex;
+    min-height: 100vh !important;
+    justify-content: center;
+}
+
+.mapImage {
+    z-index: -1 !important;
+    min-height: 100vh !important;
+}
+
+.tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 5px;
+    border-radius: 3px;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 99999;
+}
+
+.tooltip.visible {
+    opacity: 1;
+}

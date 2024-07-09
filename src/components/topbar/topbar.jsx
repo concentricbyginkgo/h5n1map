@@ -1,7 +1,7 @@
 //import styles from './topbar.css';
-import s1 from './css/nav.css';
-import s2 from './css/elements.css';
-import s3 from './css/special3.css';
+import s1 from '../css/nav.css';
+import s2 from '../css/elements.css';
+import s3 from '../css/special3.css';
 
 export default function Topbar() {
 
@@ -170,7 +170,7 @@ export default function Topbar() {
           </div>
         </div>
       </header>
-      <div className="c-offcanvas is-active">
+      {/*} <div className="c-offcanvas is-active">
         <div className="c-offcanvas__inner">
           <div className="o-container">
             <div className="o-row">
@@ -247,7 +247,7 @@ export default function Topbar() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }      

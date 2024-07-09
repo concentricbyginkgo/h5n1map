@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
-import Map from './map';
-import styles from './map.module.css';
+import Map from '../map/map';
+import styles from './container.module.css';
 
 import Dot from './dot.jsx';
 
