@@ -3,6 +3,7 @@ import React from 'react';
 import Map from '../map/map';
 import styles from './container.module.css';
 
+import LoadingOverlay from './loading';
 import Dot from './dot.jsx';
 
 const LegendOptions = [
@@ -61,6 +62,8 @@ const wColor = {
 
 export default function Container() {
     // map container has the controls and the key for the map
+
+    const [loading, setLoading] = React.useState(true);
 
     const [selectedLegend, setSelectedLegend] = React.useState(LegendOptions[0]);
     const [selectedWildlife, setSelectedWildlife] = React.useState(WildlifeOptions[0]);
@@ -122,6 +125,7 @@ export default function Container() {
 
     return (
         <div className={styles.container}>
+            <LoadingOverlay loading={loading} />
             <div style={{ flex: `0 0 ${sidebarWidth}px` }} className={styles.legend}>
                 <h2>Avian Influenza H5N1</h2>
                 <h2>Detection in Mammals</h2>
@@ -168,7 +172,7 @@ export default function Container() {
 
             <div ref={dragHandler} onMouseDown={startDrag} style={{ background: dragging ? '#EEF' : '#FFF' }} className={styles.dragHandle} />
 
-            <Map className={styles.map} />
+            <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} />
         </div>
     );
 };

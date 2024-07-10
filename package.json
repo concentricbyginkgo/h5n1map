@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "csv-loader": "^3.0.5",
+    "d3-zoom": "^3.0.0",
     "next": "14.2.4",
     "react": "^18",
     "react-dom": "^18"
