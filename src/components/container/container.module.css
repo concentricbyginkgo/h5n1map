@@ -21,7 +21,25 @@
 .legend {
     overflow: hidden;
     margin-left: 50px;
-    margin-top: 100px; 
+    margin-top: 20px; 
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-auto-columns: min-content;
+    grid-auto-rows: min-content;
+}
+
+.key {
+    max-width: 150px !important;
+}
+
+.legendColumn {
+    max-width: 400px;
+    height: min-content;
+}
+.legend h1 {
+    font-size:  2.3em;
+    font-weight: bold;
+    margin-bottom: 8px;
 }
 
 .legend h2 {
@@ -56,7 +74,6 @@
     border: 1px solid #00132f;
     border-radius: 15px;
     width: 95%; /* Set a fixed width */
-    max-width: 40vw;
     display: inline-block; /* Ensure the width is respected */
 }
 
@@ -74,10 +91,6 @@
     background-color: #f0f0f0 !important;
 }
 
-.legendKey {
-    font-size: 3em;
-}
-
 .legendItem {
     margin-top: 15px;
     display: flex;
@@ -88,23 +101,9 @@
     display: inline-block;
 }
 
-.wildlifeKey {
-    padding-top: 15px;
-    scroll-behavior: smooth !important;
-    overflow: scroll !important;
-    max-height: 23vh;
-    scrollbar-width: none !important;
-}
-
-.wildlifeKey li {
-    margin-top: 5px !important;
-    font-size: .7em !important;
-}
-
 .wildlifeListWrapper {
     position: relative; /* Required for the pseudo-element positioning */
     width: 95%; /* Set a fixed width */
-    max-width: 40vw;
     max-height: 30vh;
     overflow: hidden; /* Hide the overflow to apply the gradient */
 }
@@ -132,7 +131,6 @@
     padding: 15px;
     cursor: pointer;
     width: 95%; /* Set a fixed width */
-    max-width: 40vw;
     display: inline-block; /* Ensure the width is respected */
     /* max display length and gradient fade out near bottom */
     background: linear-gradient(to bottom, #ffffff, #ffffff00);
@@ -149,10 +147,26 @@
     font-weight: 800;
 }
 
+.legendKey {
+    font-size: 3em;
+}
+
+.wildlifeKey {
+    padding-top: 15px;
+    scroll-behavior: smooth !important;
+    overflow: scroll !important;
+    max-height: 23vh;
+    scrollbar-width: none !important;
+}
+
+.wildlifeKey li {
+    margin-top: 5px !important;
+    font-size: .7em !important;
+}
+
 .wildlifeKeyWrapper {
     position: relative; /* Required for the pseudo-element positioning */
     width: 95%; /* Set a fixed width */
-    max-width: 40vw;
     max-height: 100vh; /* Ensure the element does not extend past the bottom of the screen */
     overflow: auto; /* Allow scrolling if content overflows */
 }

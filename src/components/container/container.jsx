@@ -127,18 +127,30 @@ export default function Container() {
         <div className={styles.container}>
             <LoadingOverlay loading={loading} />
             <div style={{ flex: `0 0 ${sidebarWidth}px` }} className={styles.legend}>
-                <h2>Avian Influenza H5N1</h2>
-                <h2>Detection in Mammals</h2>
-                <input type="radio" id="legendS" name="fav_language" value={LegendOptions[0]} onChange={handleLegendChange} size={LegendOptions.length} />
-                <ul className={styles.legendList}>
-                    {LegendOptions.map((option) => (
-                        <li key={option} ><label className={option == selectedLegend ? styles.selectedLabel : ''} key={option} value={option} onClick={() => setSelectedLegend(option)}>{option}</label></li>
-                    ))}
-                </ul>
+                <div className={styles.legendColumn + ' ' + styles.c1}>
+                    <h2>Avian Influenza H5N1</h2>
+                    <h2>Detection in Mammals</h2>
+                    <input type="radio" id="legendS" name="fav_language" value={LegendOptions[0]} onChange={handleLegendChange} size={LegendOptions.length} />
+                    <ul className={styles.legendList}>
+                        {LegendOptions.map((option) => (
+                            <li key={option} ><label className={option == selectedLegend ? styles.selectedLabel : ''} key={option} value={option} onClick={() => setSelectedLegend(option)}>{option}</label></li>
+                        ))}
+                    </ul>
+                </div>
+                {selectedLegend == LegendOptions[0] ?
+                    <div className={styles.legendColumn + ' ' + styles.c2 + ' ' + styles.key}>
+                        <ul className={styles.legendKey}>
+                            {LegendOptions.slice(1).map((key) => (
+                                <li key={key} className={styles.legendItem}>
+                                    <Dot color={keyColor[key]} />
+                                    <div className={styles.legendLabel}>{key}</div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div> : null}
                 {selectedLegend == 'Wildlife' ?
-                    <div className={styles.wildlifeLegend}>
+                    <div className={styles.wildlifeLegend + ' ' + styles.legendColumn + ' ' + styles.c2}>
                         <input type="radio" id="wildlifeS" name="fav_language" value={WildlifeOptions[0]} onChange={handleWildlifeChange} size={WildlifeOptions.length} />
-
                         <div className={styles.wildlifeListWrapper + ' ' + styles.border}>
                             <ul className={styles.wildlifeList}>
                                 {WildlifeOptions.map((option) => (
@@ -146,33 +158,23 @@ export default function Container() {
                                 ))}
                             </ul>
                         </div>
-
-                        {selectedWildlife == 'All Species' ? <div className={styles.wildlifeKeyWrapper}>
-                            <ul className={styles.wildlifeKey}>
-                                {WildlifeOptions.slice(1).map((key) => (
-                                    <li key={key} className={styles.legendItem}>
-                                        <Dot color={wColor[key]} />
-                                        <div className={styles.legendLabel}>{key}</div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div> : null}
-                        
                     </div> : null}
-                {selectedLegend == LegendOptions[0] ?
-                    <ul className={styles.legendKey}>
-                        {LegendOptions.slice(1).map((key) => (
-                            <li key={key} className={styles.legendItem}>
-                                <Dot color={keyColor[key]} />
-                                <div className={styles.legendLabel}>{key}</div>
-                            </li>
-                        ))}
-                    </ul> : null}
-            </div>
+                {selectedLegend == 'Wildlife' && selectedWildlife == 'All Species' ?
+                    <div className={styles.wildlifeKeyWrapper + ' ' + styles.legendColumn + ' ' + styles.c3}>
+                        <ul className={styles.wildlifeKey + ' ' + styles.key}>
+                            {WildlifeOptions.slice(1).map((key) => (
+                                <li key={key} className={styles.legendItem}>
+                                    <Dot color={wColor[key]} />
+                                    <div className={styles.legendLabel}>{key}</div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div> : null}
+            </div >
 
             <div ref={dragHandler} onMouseDown={startDrag} style={{ background: dragging ? '#EEF' : '#FFF' }} className={styles.dragHandle} />
 
             <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} />
-        </div>
+        </div >
     );
 };
