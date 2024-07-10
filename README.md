@@ -1,3 +1,9 @@
+#  Use docker with:
+
+    docker build -t nextjs-docker .
+
+    docker run -p 3000:3000 nextjs-docker
+
 # County Codes:
 
 [./data/countycodes.csv](./data/countycodes.csv)
