@@ -21,17 +21,41 @@
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
     z-index: 99999;
+    transform: translate(6px, -50%);
 }
 
 .tooltip.visible {
     opacity: 1;
 }
 
-.county:hover {
-    /* svg path element */
-    -webkit-filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, .7));
-    filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, .7));
-    stroke: #bdbdbdb2;
-    stroke-width: .75;
-    transition: all 0.1s ease-in-out;
+.county {
+    /*
+    stroke: #b3b3b3;
+    fill: #b3b3b3;
+    */
+    stroke-width: .5;   
+    z-index: 1;
+    pointer-events: none;
+}
+
+.countyOverlay {
+    opacity: 0;
+    stroke: #000;
+    stroke-width: 0;
+    transition: all 0.3s;
+}
+
+.countyOverlay:hover {
+    opacity: 1 !important;
+    stroke-width: 1;
+}
+
+.countyOverlaid {
+    opacity: 1 !important;
+}
+
+.not_hovered_screen path {
+    opacity: 0.9;
+    stroke-width: .3;
+    z-index: 1 !important;
 }

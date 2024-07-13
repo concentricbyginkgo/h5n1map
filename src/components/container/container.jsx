@@ -159,7 +159,7 @@ export default function Container() {
                             </ul>
                         </div>
                     </div> : null}
-                {selectedLegend == 'Wildlife' && selectedWildlife == 'All Species' ?
+                {/*selectedLegend == 'Wildlife' && selectedWildlife == 'All Species' ?
                     <div className={styles.wildlifeKeyWrapper + ' ' + styles.legendColumn + ' ' + styles.c3}>
                         <ul className={styles.wildlifeKey + ' ' + styles.key}>
                             {WildlifeOptions.slice(1).map((key) => (
@@ -169,7 +169,7 @@ export default function Container() {
                                 </li>
                             ))}
                         </ul>
-                    </div> : null}
+                    </div> : null*/}
             </div >
 
             <div ref={dragHandler} onMouseDown={startDrag} style={{ background: dragging ? '#EEF' : '#FFF' }} className={styles.dragHandle} />
