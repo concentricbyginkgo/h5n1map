@@ -113,6 +113,7 @@ function addEventListenersToID(id, cData, setTooltip, parentRef) {
         overlay.addEventListener('click', () => {
             console.log(`Clicked on ${cData.name}`);
             console.log(pretty(cData));
+            console.log(cData);
         });
     }
 }

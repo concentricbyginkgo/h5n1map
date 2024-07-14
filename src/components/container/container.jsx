@@ -25,43 +25,33 @@ const keyColor = {
 
 const WildlifeOptions = [
     'All Species',
-    'Red Fox',
+    'Red fox',
     'House mouse',
-    'Big cat (Captive)',
-    'Domestic Cat*',
     'Bobcat',
-    'Mountain Lion',
-    'Black Bear',
-    'Brown Bear',
-    'Polar Bear',
-    'Bottlenose Dolphin',
-    'Grey Seal',
-    'Harbor Seal',
+    'Virginia opossum',
+    'Raccoon',
     'Coyote',
-    'American Marten',
-    'Horse',
-    'Moose',
-    'White-tailed Deer'
+    'Striped skunk',
+    'Fisher',
+    'Harbor seal',
+    'Grey seal',
+    'Skunk (unidentified)',
+    'Bottlenose dolphin',
+    'Amur Leopard',
+    'Red Fox',
+    'American black bear',
+    'Kodiak bear',
+    'Grizzly bear',
+    'Mountain lion',
+    'Amur tiger',
+    'North American river otter',
+    'American marten',
+    'Polar bear',
+    "Abert's squirrel",
+    'Domestic cat',
+    'American mink'
 ];
 
-const wColor = {
-    'Big cat (Captive)': 'blue',
-    'Domestic Cat*': 'green',
-    'Bobcat': 'orange',
-    'Mountain Lion': 'red',
-    'Black Bear': 'purple',
-    'Brown Bear': 'pink',
-    'Polar Bear': 'brown',
-    'Bottlenose Dolphin': 'cyan',
-    'Grey Seal': 'magenta',
-    'Harbor Seal': 'yellow',
-    'Coyote': 'lime',
-    'Red Fox': 'teal',
-    'American Marten': 'coral',
-    'Horse': 'indigo',
-    'Moose': 'violet',
-    'White-tailed Deer': 'salmon',
-};
 
 export default function Container() {
     // map container has the controls and the key for the map
@@ -149,7 +139,7 @@ export default function Container() {
                         <div className={styles.wildlifeListWrapper + ' ' + styles.border}>
                             <ul className={styles.wildlifeList}>
                                 {WildlifeOptions.map((option) => (
-                                    <li onClick={() => { console.log(option); setSelectedWildlife(option); }}  key={option} ><label className={option == selectedWildlife ? styles.selectedSubtle : ''} key={option} value={option} >{option}</label></li>
+                                    <li onClick={() => { console.log(option); setSelectedWildlife(option); }} key={option} ><label className={option == selectedWildlife ? styles.selectedSubtle : ''} key={option} value={option} >{option}</label></li>
                                 ))}
                             </ul>
                         </div>
