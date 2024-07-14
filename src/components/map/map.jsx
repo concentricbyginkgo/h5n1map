@@ -113,6 +113,7 @@ function addEventListenersToID(id, cData, setTooltip, parentRef) {
         overlay.addEventListener('click', () => {
             console.log(`Clicked on ${cData.name}`);
             console.log(pretty(cData));
+            console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
             console.log(cData);
         });
     }
@@ -230,8 +231,7 @@ function setFillsToWildlife(selectedSub, max) {
 
                         // seperate the row by commas, where species is 3rd index
                         const selected = datum['Wildlife'].filter((row) => {
-                            let species = row.split(',')[3];
-                            console.log('species:', species, 'selected:', selectedSub, 'equal:', species.toLowerCase() == selectedSub.toLowerCase());
+                            let species = row.split(',')[3]; 
                             return species.toLowerCase() == selectedSub.toLowerCase();
                         }).length;
                         
