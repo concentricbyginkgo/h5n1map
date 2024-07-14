@@ -12,17 +12,21 @@ const LegendOptions = [
     'Poultry Farms',
     'Wild Birds',
     'Wildlife',
+    'Human',
 ];
 
 const keyColor = {
-    'Dairy Farms': 'blue',
-    'Poultry Farms': 'green',
-    'Wild Birds': 'orange',
-    'Wildlife': 'red',
+    'Dairy Farms': 'purple',
+    'Poultry Farms': 'red',
+    'Wild Birds': 'blue',
+    'Wildlife': 'green',
+    'Human': 'orange',
 };
 
 const WildlifeOptions = [
     'All Species',
+    'Red Fox',
+    'House mouse',
     'Big cat (Captive)',
     'Domestic Cat*',
     'Bobcat',
@@ -34,7 +38,6 @@ const WildlifeOptions = [
     'Grey Seal',
     'Harbor Seal',
     'Coyote',
-    'Red Fox',
     'American Marten',
     'Horse',
     'Moose',
@@ -67,14 +70,6 @@ export default function Container() {
 
     const [selectedLegend, setSelectedLegend] = React.useState(LegendOptions[0]);
     const [selectedWildlife, setSelectedWildlife] = React.useState(WildlifeOptions[0]);
-
-    const handleLegendChange = (event) => {
-        setSelectedLegend(event.target.value);
-    };
-
-    const handleWildlifeChange = (event) => {
-        setSelectedWildlife(event.target.value);
-    }
 
     const [sidebarWidth, setSidebarWidth] = React.useState(typeof localStorage !== 'undefined' ? parseInt(localStorage.getItem('sidebarWidth')) || 420 : 420);
     const [dragging, setDragging] = React.useState(false);
@@ -130,10 +125,10 @@ export default function Container() {
                 <div className={styles.legendColumn + ' ' + styles.c1}>
                     <h2>Avian Influenza H5N1</h2>
                     <h2>Detection in Mammals</h2>
-                    <input type="radio" id="legendS" name="fav_language" value={LegendOptions[0]} onChange={handleLegendChange} size={LegendOptions.length} />
+                    <input type="radio" id="legendS" name="fav_language" value={LegendOptions[0]} size={LegendOptions.length} />
                     <ul className={styles.legendList}>
                         {LegendOptions.map((option) => (
-                            <li key={option} ><label className={option == selectedLegend ? styles.selectedLabel : ''} key={option} value={option} onClick={() => setSelectedLegend(option)}>{option}</label></li>
+                            <li key={option} ><label className={option == selectedLegend ? styles.selectedLabel : ''} key={option} value={option} onClick={() => { console.log(option); setSelectedLegend(option); }}>{option}</label></li>
                         ))}
                     </ul>
                 </div>
@@ -150,11 +145,11 @@ export default function Container() {
                     </div> : null}
                 {selectedLegend == 'Wildlife' ?
                     <div className={styles.wildlifeLegend + ' ' + styles.legendColumn + ' ' + styles.c2}>
-                        <input type="radio" id="wildlifeS" name="fav_language" value={WildlifeOptions[0]} onChange={handleWildlifeChange} size={WildlifeOptions.length} />
+                        <input type="radio" id="wildlifeS" name="fav_language" value={WildlifeOptions[0]} size={WildlifeOptions.length} />
                         <div className={styles.wildlifeListWrapper + ' ' + styles.border}>
                             <ul className={styles.wildlifeList}>
                                 {WildlifeOptions.map((option) => (
-                                    <li onClick={() => setSelectedWildlife(option)} key={option} ><label className={option == selectedWildlife ? styles.selectedSubtle : ''} key={option} value={option} >{option}</label></li>
+                                    <li onClick={() => { console.log(option); setSelectedWildlife(option); }}  key={option} ><label className={option == selectedWildlife ? styles.selectedSubtle : ''} key={option} value={option} >{option}</label></li>
                                 ))}
                             </ul>
                         </div>

@@ -1,4 +1,5 @@
 import pandas as pd
+import json
 
 # data files
 animal = './combined_h5n1_animal_surveillance_data.csv'
@@ -198,3 +199,56 @@ combined_data.dropna(axis=1, how='all', inplace=True)
 
 # Write the combined data to a CSV
 combined_data.to_csv('./combined_data.csv', index=False)
+
+# capitiliaze the first letter of each word in the county column
+combined_data['county'] = combined_data['county'].str.title()
+
+# make a json file with this heirarchy: county -> source -> list of data
+json_data = {}
+sources = combined_data['source'].unique()
+
+for county, county_data in combined_data.groupby('id'):
+    json_data[county] = {}
+    for source in sources:
+        json_data[county][source] = []
+
+    # set name to county_data name from id
+    json_data[county]['name'] = county_data['county'].iloc[0]
+
+
+# Report any rows that have null county or source
+print('Rows with null county or source:')
+print(combined_data[combined_data['county'].isnull() | combined_data['source'].isnull()])
+
+# Drop rows with null county or source
+combined_data.dropna(subset=['county', 'source'], inplace=True)
+
+# Identify columns with NaN values
+nan_columns = combined_data.columns[combined_data.isna().any()].tolist()
+
+# Cast these columns to object dtype
+combined_data[nan_columns] = combined_data[nan_columns].astype(object)
+
+# Replace NaN with empty string
+combined_data.fillna('', inplace=True)
+
+# Write each row to its corresponding county and source
+for index, row in combined_data.iterrows():
+    county = row['id']
+    source = row['source']
+    
+    # Convert the row to a comma-separated string
+    row_str = ','.join(row.astype(str))
+    
+    # Initialize the nested dictionary if it doesn't exist
+    if county not in json_data:
+        json_data[county] = {}
+    if source not in json_data[county]:
+        json_data[county][source] = []
+    
+    # Append the row string to the list
+    json_data[county][source].append(row_str)
+
+# Write the dictionary to a JSON file
+with open('./combined_data.json', 'w') as f:
+    json.dump(json_data, f, indent=4)

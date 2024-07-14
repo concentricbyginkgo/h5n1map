@@ -2,9 +2,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { zoom as d3Zoom, zoomIdentity } from 'd3-zoom';
 import { select } from 'd3-selection';
-import codes from '../../../public/data/countycodes.csv';
-import data from '../../../public/data/combined_h5n1_animal_surveillance_data.csv';
-import states from '../../../public/data/states.csv';
+import allData from '../../../public/data/combined_data.json';
+// import allData from '../../../public/data/combined_data.csv';
+// import codes from '../../../public/data/countycodes.csv';
+// import data from '../../../public/data/combined_h5n1_animal_surveillance_data.csv';
+// import states from '../../../public/data/states.csv';
 import styles from './map.module.css';
 
 function setTopIndex(element) {
@@ -28,9 +30,30 @@ function setTopIndex(element) {
     setTopIndex(parent);
 }
 
+function notNameLength(cData) {
+    let keys = Object.keys(cData);
+    keys = keys.filter((key) => key !== 'name');
+    let len = 0;
+    for (const key of keys) {
+        len += cData[key].length;
+    }
+    return len;
+}
+
 function pretty(cData) {
+    let str = '';
     // converts the data to a pretty string
-    return `${cData.name}\n${cData.cases.length} cases`;
+    // for every source in cData, not name
+    const leng = notNameLength(cData);
+    str += `${cData.name}, Cases: ${leng}\n`;
+    let keys = Object.keys(cData);
+    keys = keys.filter((key) => key !== 'name');
+    for (const key of keys) {
+        if (cData[key].length > 0) {
+            str += `${key}: ${cData[key].length}\n`;
+        }
+    }
+    return str;
 }
 
 function hoverListenerConstructor(cData, setTooltip, parentRef, overlay) {
@@ -47,7 +70,40 @@ function hoverListenerConstructor(cData, setTooltip, parentRef, overlay) {
     };
 }
 
-function addEventListenersToID(id, cData, setTooltip, parentRef, max = 300, min = 0) {
+function singleColor(d, max, min) {
+    const c = 179; // minimum value
+    const fc = c.toString(16).padStart(2, '0'); // Ensure fc is two characters long
+
+
+    // Apply logarithmic scaling
+    const logMin = Math.log(min + 1); // Adding 1 to avoid log(0)
+    const logMax = Math.log(max + 1);
+    const logCases = Math.log(d + 1);
+
+    // Normalize the logarithmic value to the range [0, 1]
+    const normalizedLog = (logCases - logMin) / (logMax - logMin);
+
+    // Scale the normalized value to the range [179, 255]
+    const cValue = Math.floor(normalizedLog * (255 - c) + c);
+    const color = cValue.toString(16).padStart(2, '0'); // Ensure red is two characters long
+    if (color == 'NaN') {
+        throw new Error(`Color is NaN: ${d}, ${max}, ${min}`);
+    }
+
+    return color;
+}
+
+
+function singleChannelColor(d, max, min, targ, selectedMain) {
+
+    if (selectedMain !== targ && selectedMain !== 'All Cases') {
+        return 'b3';
+    }
+
+    return singleColor(d, max, min);
+}
+
+function addEventListenersToID(id, cData, setTooltip, parentRef) {
     const element = document.getElementById(id);
     const overlay = document.getElementById(id.replace('c', 'b'));
     if (element && overlay) {
@@ -55,60 +111,169 @@ function addEventListenersToID(id, cData, setTooltip, parentRef, max = 300, min 
         overlay.addEventListener('mousemove', hoverListener);
         overlay.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '', x: 0, y: 0 }));
         overlay.addEventListener('click', () => {
+            console.log(`Clicked on ${cData.name}`);
             console.log(pretty(cData));
-            for (const d of cData.cases) {
-                console.log(d);
-            }
         });
+    }
+}
 
-        // set fill color based on number of cases
-        if (cData.cases.length > 0) {
-            const c = 179; // minimum red value
-            const fc = c.toString(16).padStart(2, '0'); // Ensure fc is two characters long
+function setFillsToLegend(selectedMain, maxs) {
+    const ccs = Object.keys(allData);
+    for (const id of ccs) {
+        const countyCode = `c${id}`;
+        const overlayCode = `b${id}`;
 
-            // Apply logarithmic scaling
-            const logMin = Math.log(min + 1); // Adding 1 to avoid log(0)
-            const logMax = Math.log(max + 1);
-            const logCases = Math.log(cData.cases.length + 1);
+        const datum = allData[id];
 
-            // Normalize the logarithmic value to the range [0, 1]
-            const normalizedLog = (logCases - logMin) / (logMax - logMin);
+        if (document.getElementById(countyCode)) {
+            const element = document.getElementById(countyCode);
+            const overlay = document.getElementById(overlayCode);
 
-            // Scale the normalized value to the range [179, 255]
-            const redValue = Math.floor(normalizedLog * (255 - 179) + 179);
-            const red = redValue.toString(16).padStart(2, '0'); // Ensure red is two characters long
-            const fill = `#${red}${fc}${fc}`;
-            element.setAttribute('fill', fill);
-            element.setAttribute('stroke', fill);
-            overlay.setAttribute('fill', fill);
-            overlay.setAttribute('stroke', fill);
+            // set fill color based on number of cases
+            if (notNameLength(datum) > 0) {
+
+                if (selectedMain === 'Human') {
+                    const hmax = 5;
+                    const hmin = 0;
+                    const human = datum['Human'].length;
+                    const fill = `#${singleChannelColor(human, hmax, hmin, 'Human', selectedMain)}b3b3`;
+                    element.setAttribute('fill', fill);
+                    element.setAttribute('stroke', fill);
+                    overlay.setAttribute('fill', fill);
+                    overlay.setAttribute('stroke', fill);
+                } else if (selectedMain === 'Dairy Farms') {
+                    // no data for dairy farms atm, set to default
+                    const fill = '#b3b3b3';
+                    element.setAttribute('fill', fill);
+                    element.setAttribute('stroke', fill);
+                    overlay.setAttribute('fill', fill);
+
+                } else {
+                    const red = singleChannelColor(datum['Poultry Farms'].length, maxs[0], 0, 'Poultry Farms', selectedMain);
+                    const green = singleChannelColor(datum['Wild Birds'].length, maxs[1], 0, 'Wild Birds', selectedMain);
+                    const blue = singleChannelColor(datum['Wildlife'].length, maxs[2], 0, 'Wildlife', selectedMain);
+
+                    const fill = `#${red}${green}${blue}`;
+
+                    element.setAttribute('fill', fill);
+                    element.setAttribute('stroke', fill);
+                    overlay.setAttribute('fill', fill);
+                    overlay.setAttribute('stroke', fill);
+                }
+            }
         }
     }
 }
 
-function getDataForCounty(countyName, stateAbbrv) {
-    let stateName = states.find(state => state.Abbreviation === stateAbbrv)
-    if (!stateName) {
-        return { cases: 0, name: countyName + ', ' + stateAbbrv };
-    } else {
-        stateName = stateName.State;
-    }
-    countyName = countyName.replace(' County', '');
 
-    //const countyData = data.find(d => d.county === countyName && d.state === stateName);
-    const countyData = data.filter(d => d.county === countyName && d.state === stateName);
+function setFillsToWildlife(selectedSub, max) {
+    // 2 most common: 
+    // Red fox                       83
+    // House mouse                   47
+    // remainder:                   242
 
-    if (countyData) {
-        const data = {
-            cases: countyData,
-            name: countyName + ', ' + stateName
-        };
-        return data;
-    } else {
-        return { cases: [], name: countyName + ', ' + stateName };
+    // so red fox will be red, house mouse will be green, and the rest will be blue
+    const ccs = Object.keys(allData);
+    for (const id of ccs) {
+        const countyCode = `c${id}`;
+        const overlayCode = `b${id}`;
+
+        const datum = allData[id];
+
+        if (document.getElementById(countyCode)) {
+            const element = document.getElementById(countyCode);
+            const overlay = document.getElementById(overlayCode);
+
+            // set fill color based on number of cases
+            if (notNameLength(datum) > 0) {
+                const c = 179; // minimum value
+                const fc = c.toString(16).padStart(2, '0'); // Ensure fc is two characters long
+
+                let red = fc;
+                let green = fc;
+                let blue = fc;
+
+                if (datum['Wildlife'].length > 0) {
+                    if (selectedSub == 'All Species') {
+                        const redFox = datum['Wildlife'].filter((row) => {
+                            let species = row.split(',')[3];
+                            return species.toLowerCase() == 'red fox';
+                        }).length;
+
+                        const houseMouse = datum['Wildlife'].filter((row) => {
+                            let species = row.split(',')[3];
+                            return species.toLowerCase() == 'house mouse';
+                        }).length;
+
+                        if (redFox > 0) {
+                            red = singleColor(redFox, 5, 0);
+                        }
+                        if (houseMouse > 0) {
+                            green = singleColor(houseMouse, 47, 0);
+                        }
+
+                        const other = datum['Wildlife'].length - redFox - houseMouse;
+                        if (other > 0) {
+                            blue = singleColor(other, 8, 0);
+                        }
+
+                        const fill = `#${red}${green}${blue}`;
+
+                        element.setAttribute('fill', fill);
+                        element.setAttribute('stroke', fill);
+                        overlay.setAttribute('fill', fill);
+                        overlay.setAttribute('stroke', fill);
+                    } else {
+                        // search the datum for the selectedSub and display in blue
+                        let amax = selectedSub === 'House mouse' ? 47 : selectedSub === 'Red Fox' ? 5 : 8;
+
+                        // seperate the row by commas, where species is 3rd index
+                        const selected = datum['Wildlife'].filter((row) => {
+                            let species = row.split(',')[3];
+                            console.log('species:', species, 'selected:', selectedSub, 'equal:', species.toLowerCase() == selectedSub.toLowerCase());
+                            return species.toLowerCase() == selectedSub.toLowerCase();
+                        }).length;
+                        
+                        blue = singleColor(selected, amax, 0);
+
+                        const fill = `#${red}${green}${blue}`;
+
+                        element.setAttribute('fill', fill);
+                        element.setAttribute('stroke', fill);
+                        overlay.setAttribute('fill', fill);
+                        overlay.setAttribute('stroke', fill);
+                    }
+                } else {
+                    element.setAttribute('fill', `#${fc}${fc}${fc}`);
+                    element.setAttribute('stroke', `#${fc}${fc}${fc}`);
+                    overlay.setAttribute('fill', `#${fc}${fc}${fc}`);
+                    overlay.setAttribute('stroke', `#${fc}${fc}${fc}`);
+                }
+            }
+        }
     }
 }
 
+function setMaxes() {
+    let maxPoultry = 0;
+    let maxWildBirds = 0;
+    let maxWildlife = 0;
+
+    for (const id in allData) {
+        const datum = allData[id];
+        if (datum['Poultry Farms'].length > maxPoultry) {
+            maxPoultry = datum['Poultry Farms'].length;
+        }
+        if (datum['Wild Birds'].length > maxWildBirds) {
+            maxWildBirds = datum['Wild Birds'].length;
+        }
+        if (datum['Wildlife'].length > maxWildlife) {
+            maxWildlife = datum['Wildlife'].length;
+        }
+    }
+
+    return [maxPoultry, maxWildBirds, maxWildlife];
+}
 
 export default function Map(props) {
     const [tooltip, setTooltip] = useState({ visible: false, name: '', x: 0, y: 0 });
@@ -126,18 +291,50 @@ export default function Map(props) {
     //     return () => clearTimeout(timeout);
     // }, [tooltip.visible]);
 
+    const [selectedMain, setSelectedMain] = useState('All Cases');
+    const [selectedSub, setSelectedSub] = useState('All Species');
+
+    let MaxPoultry = 0;
+    let MaxWildBirds = 0;
+    let MaxWildlife = 0;
+
+    let maxes = setMaxes();
+    MaxPoultry = maxes[0];
+    MaxWildBirds = maxes[1];
+    MaxWildlife = maxes[2];
+
 
     useEffect(() => {
-        for (const county of codes) {
-            const countyCode = 'c' + String(county.id).padStart(5, '0');
-            const data = getDataForCounty(county.county, county.state);
+        //console.log('Selected Main:', selectedMain);
+        setSelectedMain(props.selectedLegend);
+        if (props.selectedLegend != 'Wildlife') {
+            setFillsToLegend(props.selectedLegend, [MaxPoultry, MaxWildBirds, MaxWildlife]);
+        } else {
+            setFillsToWildlife(props.selectedWildlife, MaxWildlife);
+        }
+    }, [props.selectedLegend]);
+
+    useEffect(() => {
+        //console.log('Selected Sub:', selectedSub);
+        setSelectedSub(props.selectedWildlife);
+        if (props.selectedLegend == 'Wildlife') {
+            setFillsToWildlife(props.selectedWildlife, MaxWildlife);
+        }
+    }, [props.selectedWildlife]);
+
+
+    useEffect(() => {
+        // allData json structure:
+        // allData['countyID'] = { 'source': ['row1', 'row2', ...], 'name': 'countyName' }
+        // maxMins = [[maxPoultry, 0], [maxWildBirds, 0], [maxWildlife, 0]]
+
+        const ccs = Object.keys(allData);
+        for (const id of ccs) {
+            const countyCode = `c${id}`;
+            const datum = allData[id];
+
             if (document.getElementById(countyCode)) {
-                addEventListenersToID(countyCode, data, setTooltip, parentRef);
-            } else {
-                // if there is data for the county but no corresponding element, log the county name
-                if (data.cases.length > 0) {
-                    console.error(county.county + ', ' + county.state);
-                }
+                addEventListenersToID(countyCode, datum, setTooltip, parentRef);
             }
         }
         props.setLoading(false);

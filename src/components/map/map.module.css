@@ -22,6 +22,8 @@
     transition: opacity 0.3s ease-in-out;
     z-index: 99999;
     transform: translate(6px, -50%);
+    /* respect newlines */
+    white-space: pre-wrap;
 }
 
 .tooltip.visible {
