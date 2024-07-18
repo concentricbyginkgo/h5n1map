@@ -60,6 +60,7 @@ function hoverListenerConstructor(cData, setTooltip, parentRef, overlay) {
         setTooltip({
             visible: true,
             name: pretty(cData),
+            data: cData,
             x: event.clientX - parentRect.left,
             y: event.clientY - parentRect.top
         });
@@ -83,25 +84,7 @@ function addEventListenersToID(id, cData, setTooltip, parentRef) {
     }
 }
 
-function singleColor(d, max, min) {
-    const c = 179; // minimum value
-
-    // Apply logarithmic scaling
-    const logMin = Math.log(min + 1); // Adding 1 to avoid log(0)
-    const logMax = Math.log(max + 1);
-    const logCases = Math.log(d + 1);
-
-    // Normalize the logarithmic value to the range [0, 1]
-    const normalizedLog = (logCases - logMin) / (logMax - logMin);
-
-    // Scale the normalized value to the range [179, 255]
-    const cValue = Math.floor(normalizedLog * (255 - c) + c);
-    const color = cValue.toString(16).padStart(2, '0'); // Ensure red is two characters long
-
-    return color;
-}
-
-function setFillsTo(fillFunction, allData, max) {
+function setFillsTo(fillFunction, allData, max, color) {
     const ccs = Object.keys(allData);
     for (const id of ccs) {
         const countyCode = `c${id}`;
@@ -116,27 +99,66 @@ function setFillsTo(fillFunction, allData, max) {
             // set fill color based on number of cases
             if (notNameLength(datum) > 0) {
 
-                element.setAttribute('fill', fillFunction(datum, max));
-                element.setAttribute('stroke', fillFunction(datum, max));
+                element.setAttribute('fill', fillFunction(datum, max, color));
+                element.setAttribute('stroke', fillFunction(datum, max, color));
 
-                overlay.setAttribute('fill', fillFunction(datum, max));
-                overlay.setAttribute('stroke', fillFunction(datum, max));
+                overlay.setAttribute('fill', fillFunction(datum, max, color));
+                overlay.setAttribute('stroke', fillFunction(datum, max, color));
 
+            } else {
+                const fill = '#b3b3b3';
+                element.setAttribute('fill', fill);
+                element.setAttribute('stroke', fill);
+
+                overlay.setAttribute('fill', fill);
+                overlay.setAttribute('stroke', fill);
             }
         }
     }
 }
 
-function countyColoring(datum, max) {
+function mix1channel(rgb1, rgb2, ratio) {
+    return rgb1 + (rgb2 - rgb1) * ratio;
+}
+
+function whiteToColorGradient(value, color, max, min = 1) {
+    const white = '#ffffff';
+    const wr = Math.round(mix1channel(parseInt(white.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), .25));
+    const wg = Math.round(mix1channel(parseInt(white.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), .25));
+    const wb = Math.round(mix1channel(parseInt(white.slice(5, 7), 16), parseInt(color.slice(5, 7), 16), .25));
+    const halfwhite = `#${wr.toString(16).padStart(2, '0')}${wg.toString(16).padStart(2, '0')}${wb.toString(16).padStart(2, '0')}`;
+    
+    const ratio = (value - min) / (max - min);
+
+    const r = Math.round(mix1channel(parseInt(halfwhite.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), ratio));
+    const g = Math.round(mix1channel(parseInt(halfwhite.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), ratio));
+    const b = Math.round(mix1channel(parseInt(halfwhite.slice(5, 7), 16), parseInt(color.slice(5, 7), 16), ratio));
+
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}  
+
+function allCasesColoring(datum, max) {
     return '#ffb3b3';
 }
 
-function stateColoring(datum, max) {
-    return '#b3ffb3';
+function countyColoringC(selectedLegend) { // constructor for county coloring
+    return function countyColoring(datum, max, color) {
+        if (datum[selectedLegend] === undefined) {
+            return '#b3b3b3';
+        } else if (datum[selectedLegend].length <= 0) {
+            return '#b3b3b3';
+        } else {
+            return whiteToColorGradient(datum[selectedLegend].length, color, max);
+        }
+    }
 }
 
-function wildlifeColoring(datum, max) {
-    return '#b3b3ff';
+function stateColoring(datum, max, color) {
+    return color;
+}
+
+function wildlifeColoring(datum, max, color) {
+    return color;
 }
 
 export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}
@@ -152,18 +174,18 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
     useEffect(() => { // listens for changes in main legend, wildlife and daily farms are special cases
         setSelectedMain(props.selectedLegend);
         if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Daily Farms') {
-            setFillsTo(countyColoring, props.allData, props.Maxes[props.selectedLegend]);
+            setFillsTo(countyColoringC(props.selectedLegend), props.allData, props.Maxes[props.selectedLegend], props.color);
         } else if (props.selectedLegend == 'Daily Farms') { // this is different because dairy data is state level instead of county level
-            setFillsTo(stateColoring, props.allData, props.Maxes[props.selectedLegend]);
+            setFillsTo(stateColoring, props.allData, props.Maxes[props.selectedLegend], props.color);
         } else if (props.selectedLegend == 'Wildlife') { // this is similar, but we need to check the sub legend
-            setFillsTo(wildlifeColoring, props.allData, props.Maxes[props.selectedWildlife]);
+            setFillsTo(wildlifeColoring, props.allData, props.Maxes[props.selectedWildlife], props.color);
         }
     }, [props.selectedLegend]);
 
     useEffect(() => { // listens for changes in wildlife sub legend
         setSelectedSub(props.selectedWildlife);
         if (props.selectedLegend == 'Wildlife') {
-            setFillsTo(wildlifeColoring, props.allData, props.Maxes[props.selectedWildlife]);
+            setFillsTo(wildlifeColoring, props.allData, props.Maxes[props.selectedWildlife], props.color);
         }
     }, [props.selectedWildlife]);
 
@@ -18831,7 +18853,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                     </g>
                 </g>
             </svg>
-            {tooltip.visible && ( <Tooltip {...{x: tooltip.x, y: tooltip.y, text: tooltip.name}} /> )}
+            {tooltip.visible && ( <Tooltip {...{x: tooltip.x, y: tooltip.y, info: tooltip.data, name: tooltip.name}} /> )}
         </div>
     );
 }

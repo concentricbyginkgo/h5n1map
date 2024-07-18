@@ -12,10 +12,6 @@
 }
 
 .county {
-    /*
-    stroke: #b3b3b3;
-    fill: #b3b3b3;
-    */
     stroke-width: .5;   
     z-index: 1;
     pointer-events: none;

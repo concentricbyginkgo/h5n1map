@@ -14,11 +14,11 @@ const LegendDefault = 'All Cases';
 const WildlifeDefault = 'All Species';
 
 const keyColor = {
-    'Dairy Farms': 'purple',
-    'Poultry Farms': 'red',
-    'Wild Birds': 'blue',
-    'Wildlife': 'green',
-    'Human': 'orange',
+    'Dairy Farms': '#519a8f',
+    'Poultry Farms': '#7653a5',
+    'Wild Birds': '#fc573e',
+    'Wildlife': '#8fa429',
+    'Human': '#f7c242',
 };
 
 
@@ -27,7 +27,7 @@ function dataIngest(data) {
     // allData['countyID'] = { 'source': ['row1', 'row2', ...], 'name': 'countyName' }
     // maxMins = [[maxPoultry, 0], [maxWildBirds, 0], [maxWildlife, 0]]
     // maxes = { 'Dairy Farms': maxDairy, 'Poultry Farms': maxPoultry, 'Wild Birds': maxWildBirds, 'Human': maxHuman, 'All Cases': maxAll, 'All Species': maxAllSpecies, 'Otter': maxOtter}
-    let maxes = {};    
+    let maxes = {};
     let legendOptions = [LegendDefault];
     let wildlifeOptions = [WildlifeDefault];
     for (var entry in data) {
@@ -47,13 +47,19 @@ function dataIngest(data) {
                     legendOptions.push(source);
                 }
             }
+            maxes['All Cases'] = 0;
         }
 
+        var allmax = 0;
         for (const source of Object.keys(countyData)) {
             if (source != 'name') {
                 if (countyData[source].length > maxes[source]) {
                     maxes[source] = countyData[source].length;
+                    console.log('source', source);
+                    console.log('countyData[source]', countyData[source]);
+                    console.log('maxes[source]', maxes[source]);
                 }
+                allmax += countyData[source].length;
 
                 if (source == 'Wildlife') {
                     // wildlife is a list of comma separated strings: Wildlife,California,Mono,Mountain lion...
@@ -66,13 +72,16 @@ function dataIngest(data) {
                         }
                         if (countyData[source].length > maxes[species]) {
                             maxes[species] = countyData[source].length;
+                            console.log('maxes[species]', maxes[species]);
                         }
                     }
                 }
             }
         }
+        if (allmax > maxes['All Cases']) {
+            maxes['All Cases'] = allmax;
+        }
     }
-
     return [maxes, legendOptions, wildlifeOptions];
 }
 
@@ -173,13 +182,13 @@ export default function Container() {
                     </div> : null}
                 {selectedLegend != LegendOptions[0] ?
                     <div className={styles.scale + ' ' + styles.legendColumn + ' ' + styles.c1}>
-                        <ScaleKey color={keyColor[selectedLegend]} />
+                        <ScaleKey color={keyColor[selectedLegend]} max={Maxes[selectedLegend]} />
                     </div> : null}
             </div >
 
             <div ref={dragHandler} onMouseDown={startDrag} style={{ background: dragging ? '#EEF' : '#FFF' }} className={styles.dragHandle} />
 
-            <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} Maxes={Maxes} />
+            <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} Maxes={Maxes} color={keyColor[selectedLegend]} />
         </div >
     );
 };

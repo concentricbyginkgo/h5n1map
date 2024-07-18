@@ -1,9 +1,16 @@
-.scaleKey {
-}
+
 
 .gradient {
     background: linear-gradient(to right, #f7f7f7, #ff0000);
     width: 100%;
     height: 10px;
     border-radius: 5px;
+}
+
+.min {
+    float: left;
+}
+
+.max {
+    float: right;
 }
