@@ -21,6 +21,38 @@ const keyColor = {
     'Human': '#f7c242',
 };
 
+function getDairyData(allData) {
+    let dairyData = allData['']['Dairy Farms'];
+
+    let dairyD = {};
+
+    for (let line of dairyData) {
+        let abbrev = line.split(',')
+        abbrev = abbrev[abbrev.length - 2];
+
+        dairyD[abbrev] = dairyD[abbrev] === undefined ? 1 : dairyD[abbrev] + 1;
+    }
+
+    return dairyD;
+}
+
+function getMax(allData, selectedLegend, selectedWildlife, WildlifeOptions, Maxes) {
+    // selectedLegend == 'Wildlife' ? selectedWildlife == WildlifeOptions[0] ? Maxes['All Species'] : Maxes[selectedWildlife] : Maxes[selectedLegend]} stateCounty='county'
+    if (selectedLegend == 'Wildlife') {
+        if (selectedWildlife == WildlifeOptions[0]) {
+            return Maxes['All Species'];
+        } else {
+            return Maxes[selectedWildlife];
+        }
+    } else if (selectedLegend == 'Dairy Farms') {
+        let dairyD = getDairyData(allData);
+
+        return Math.max(...Object.values(dairyD));
+    }
+    return Maxes[selectedLegend];
+}
+
+
 
 function dataIngest(data) {
     // allData json structure:
@@ -32,7 +64,7 @@ function dataIngest(data) {
     let wildlifeOptions = [WildlifeDefault];
     for (var entry in data) {
         var countyData = undefined;
-        
+
         if (entry == '') {
             continue;
         } else {
@@ -92,7 +124,7 @@ export default function Container() {
     // map container has the controls and the key for the map
 
     const [loading, setLoading] = React.useState(true);
-    
+
     const [Maxes, LegendOptions, WildlifeOptions] = dataIngest(allData);
     const [selectedLegend, setSelectedLegend] = React.useState(LegendOptions[0]);
     const [selectedWildlife, setSelectedWildlife] = React.useState(WildlifeOptions[0]);
@@ -144,6 +176,8 @@ export default function Container() {
         }
     }, []);
 
+    let max = getMax(allData, selectedLegend, selectedWildlife, WildlifeOptions, Maxes);
+
 
     return (
         <div className={styles.container}>
@@ -183,13 +217,13 @@ export default function Container() {
                     </div> : null}
                 {selectedLegend != LegendOptions[0] ?
                     <div className={styles.scale + ' ' + styles.legendColumn + ' ' + styles.c1}>
-                        <ScaleKey color={keyColor[selectedLegend]} max={ selectedLegend == 'Wildlife' ? selectedWildlife == WildlifeOptions[0] ? Maxes['All Species'] : Maxes[selectedWildlife] : Maxes[selectedLegend]} stateCounty='county' />
+                        <ScaleKey color={keyColor[selectedLegend]} max={max} />
                     </div> : null}
             </div >
 
             <div ref={dragHandler} onMouseDown={startDrag} style={{ background: dragging ? '#EEF' : '#FFF' }} className={styles.dragHandle} />
 
-            <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} Maxes={Maxes} color={keyColor[selectedLegend]} />
+            <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} color={ selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} max={max} dairyData={getDairyData(allData)} />
         </div >
     );
 };

@@ -123,12 +123,12 @@ function mix1channel(rgb1, rgb2, ratio) {
 
 function whiteToColorGradient(value, color, max, min = 1) {
     const white = '#ffffff';
-    const ra = .1;
+    const ra = .3;
     const wr = Math.round(mix1channel(parseInt(white.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), ra));
     const wg = Math.round(mix1channel(parseInt(white.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), ra));
     const wb = Math.round(mix1channel(parseInt(white.slice(5, 7), 16), parseInt(color.slice(5, 7), 16), ra));
     const halfwhite = `#${wr.toString(16).padStart(2, '0')}${wg.toString(16).padStart(2, '0')}${wb.toString(16).padStart(2, '0')}`;
-    
+
     const ratio = (value - min) / (max - min);
 
     const r = Math.round(mix1channel(parseInt(halfwhite.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), ratio));
@@ -136,10 +136,27 @@ function whiteToColorGradient(value, color, max, min = 1) {
     const b = Math.round(mix1channel(parseInt(halfwhite.slice(5, 7), 16), parseInt(color.slice(5, 7), 16), ratio));
 
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-}  
-
-function allCasesColoring(datum, max) {
-    return '#ffb3b3';
+}
+function allColoringC() { // constructor for all coloring
+    return function allColoring(datum, max, color) {
+        let colors = [];
+        let sources = [];
+        for (const source of Object.keys(datum)) {
+            if (source != 'name' && datum[source].length > 0) {
+                sources.push(source);
+                // we have one color for each source
+                colors.push(color[source]);
+            }
+        }
+        if (colors.length == 0) {
+            return '#b3b3b3';
+        } else if (colors.length == 1) {
+            return colors[0];
+        } else {
+            let gradientName = `gradient${sources.join('').replace(/ /g, '')}`;
+            return 'url(#repeat' + gradientName + ')';
+        }
+    }
 }
 
 function countyColoringC(selectedLegend) { // constructor for county coloring
@@ -154,28 +171,14 @@ function countyColoringC(selectedLegend) { // constructor for county coloring
     }
 }
 
-function stateColoringC(allData) { // constructor for state coloring
-    
-    let dairyData = allData['']['Dairy Farms'];
-    
-    let dairyD = {};
-
-    for (let line of dairyData) {
-        let abbrev = line.split(',')
-        abbrev = abbrev[abbrev.length - 2];
-        
-        dairyD[abbrev] = dairyD[abbrev] === undefined ? 1 : dairyD[abbrev] + 1;
-    }
-
-    const maxD = Math.max(...Object.values(dairyD));
-
+function stateColoringC(dairyD, maxD) { // constructor for state coloring   
     for (let key of Object.keys(dairyD)) {
         for (let stateI of states) {
             if (stateI.abbreviation == key) {
                 let statename = stateI.state.replace(' ', '_');
                 if (document.getElementById(statename)) {
                     for (let child of document.getElementById(statename).children) {
-                        child.setAttribute('fill', whiteToColorGradient(dairyD[key], '#519a8f', maxD)); 
+                        child.setAttribute('fill', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
                         child.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
                     }
                 }
@@ -188,7 +191,7 @@ function stateColoringC(allData) { // constructor for state coloring
             if (source != 'name' && datum[source].length > 0) {
                 let abbreve = datum[source][0].split(',')
                 abbreve = abbreve[abbreve.length - 2];
-                                
+
                 if (abbreve in dairyD) {
                     return whiteToColorGradient(dairyD[abbreve], color, maxD);
                 } else {
@@ -196,12 +199,11 @@ function stateColoringC(allData) { // constructor for state coloring
                 }
             }
         }
-    }    
+    }
 }
 
-function dairyFix() {
+function resetFix() {
     // resets all colorr of classname 'county' to #b3b3b3
-    console.log('dairy fix');
     let container1 = document.getElementById('counties');
     let container2 = document.getElementById('countiesOverlay');
 
@@ -241,7 +243,7 @@ function wildlifeColoringC(wildlife) { // constructor for wildlife coloring
                     if (species == wildlife) {
                         species_amount += 1;
                     }
-                } 
+                }
 
                 if (species_amount > 0) {
                     if (species_amount == 1 && max == 1) {
@@ -265,38 +267,75 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
     const [selectedMain, setSelectedMain] = useState('All Cases');
     const [selectedSub, setSelectedSub] = useState('All Species');
-    const [offDairy, setOffDairy] = useState('All Cases');
+    const [offFix, setoffFix] = useState('All Cases');
+
+    const [gradients, setGradients] = useState([]);
 
     useEffect(() => { // listens for changes in main legend, wildlife and dairy farms are special cases
-        if (offDairy == 'Dairy Farms' && props.selectedLegend != 'Dairy Farms') {
-            dairyFix();
-            setOffDairy(props.selectedLegend);
+        if (offFix == 'Dairy Farms' && props.selectedLegend != 'Dairy Farms') {
+            resetFix();
+            setoffFix(props.selectedLegend);
+        } else if (props.selectedLegend == 'All Cases' && offFix != 'All Cases') {
+            resetFix();
+            setoffFix('All Cases');
         }
 
         setSelectedMain(props.selectedLegend);
-        if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Dairy Farms') {
-            setFillsTo(countyColoringC(props.selectedLegend), props.allData, props.Maxes[props.selectedLegend], props.color);
+        if (props.selectedLegend == 'All Cases') {
+            setoffFix('All Cases');
+            setFillsTo(allColoringC(), props.allData, props.max, props.color);
+        } else if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Dairy Farms') {
+            setFillsTo(countyColoringC(props.selectedLegend), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Dairy Farms') { // this is different because dairy data is state level instead of county level
-            setOffDairy('Dairy Farms');
-            setFillsTo(stateColoringC(props.allData), props.allData, props.Maxes[props.selectedLegend], props.color);
+            setoffFix('Dairy Farms');
+            setFillsTo(stateColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Wildlife') { // this is similar, but we need to check the sub legend
-            setFillsTo(wildlifeColoringC(props.selectedWildlife), props.allData, props.Maxes[props.selectedWildlife], props.color);
+            setFillsTo(wildlifeColoringC(props.selectedWildlife), props.allData, props.max, props.color);
         }
     }, [props.selectedLegend]);
 
     useEffect(() => { // listens for changes in wildlife sub legend
         setSelectedSub(props.selectedWildlife);
         if (props.selectedLegend == 'Wildlife') {
-            setFillsTo(wildlifeColoringC(props.selectedWildlife), props.allData, props.Maxes[props.selectedWildlife], props.color);
+            setFillsTo(wildlifeColoringC(props.selectedWildlife), props.allData, props.max, props.color);
         }
     }, [props.selectedWildlife]);
 
 
     useEffect(() => { // loads the initial data
         const ccs = Object.keys(props.allData);
+        let madeGradients = [];
+        let actualyMadeGradients = [];
         for (const id of ccs) {
             const countyCode = `c${id}`;
             const datum = props.allData[id];
+
+            let sources = [];
+            for (const source of Object.keys(datum)) {
+                if (source != 'name' && datum[source].length > 0) {
+                    sources.push(source);
+                }
+            }
+
+            if (sources.length > 1) {
+                // do we need a new gradient?
+                if (!madeGradients.includes(sources.join('').replace(/ /g, ''))) {
+                    madeGradients.push(sources.join('').replace(/ /g, ''));
+                    let newGradient = { id: `gradient${sources.join('').replace(/ /g, '')}`, sources: sources };
+                    let stops = [];
+                    for (let i = 0; i < sources.length; i++) {
+                        // Calculate start and end offsets for hard edges
+                        let startOff = (i / sources.length) * 100;
+                        let endOff = ((i + 1) / sources.length) * 100;
+                        stops.push({ offset: `${startOff}%`, color: props.color[sources[i]], name: 's' + props.color[sources[i]].replace('#', '') });
+                        stops.push({ offset: `${endOff}%`, color: props.color[sources[i]], name: 's' + props.color[sources[i]].replace('#', '') });
+                    }
+                    newGradient.stops = stops;
+                    actualyMadeGradients.push(newGradient);
+                }
+            }
+
+            setGradients(actualyMadeGradients);
 
             if (document.getElementById(countyCode)) {
                 addEventListenersToID(countyCode, datum, setTooltip, parentRef);
@@ -324,9 +363,42 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         });
     }, []);
 
+    function getStyle() {
+        let style = '';
+        
+        if (selectedMain != 'All Cases') {
+            return style;
+        }
+
+        for (const color of Object.keys(props.color)) {
+            style += `.s${color.replace('#', '')} { fill: ${props.color[color]}; }\n`;
+        }
+        return style;
+    }
+
     return (
         <div ref={parentRef} className={styles.mapContainer}>
             <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1514.02 989.5">
+                <defs>
+                    {
+                        gradients.map((gradient) => (
+                            <linearGradient key={gradient.id} id={gradient.id} x1="0" x2="0" y1="50" y2="100" gradientUnits='userSpaceOnUse'>
+                                {   
+                                    gradient.stops.map((stop, i) => (
+                                        <stop key={i} offset={stop.offset} className={stop.name} stopColor={stop.color} />
+                                    ))
+                                }
+                            </linearGradient>
+                        ))
+                    }
+                    { gradients.map((gradient) => (
+                            <linearGradient id={'repeat' + gradient.id} x1="0" x2="6px" y1="0" y2="6px" xlinkHref={'#' + gradient.id} spreadMethod="repeat" key={'repeat' + gradient.id} gradientUnits='userSpaceOnUse' />
+                        ))
+                    }
+                </defs>
+                <style>
+                    { getStyle() }
+                </style>
                 <g ref={gRef} id="Layer_2" data-name="Layer 2">
                     <g id="Layer_5" data-name="Layer 5">
                         <g id="counties" style={{ transition: 'opacity 0.5s', opacity: tooltip.visible ? 0.5 : 1 }}>
@@ -18955,7 +19027,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                     </g>
                 </g>
             </svg>
-            {tooltip.visible && ( <Tooltip {...{x: tooltip.x, y: tooltip.y, info: tooltip.data, name: tooltip.name}} /> )}
+            {tooltip.visible && (<Tooltip {...{ x: tooltip.x, y: tooltip.y, info: tooltip.data, name: tooltip.name }} />)}
         </div>
     );
 }

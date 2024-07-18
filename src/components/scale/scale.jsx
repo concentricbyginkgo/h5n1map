@@ -7,7 +7,7 @@ function mix1channel(rgb1, rgb2, ratio) {
 export default function ScaleKey( { color, max, stateCounty = 'county' } ) {
     // half white half color
     const white = '#ffffff';
-    const r = .1
+    const r = .3
     const wr = Math.round(mix1channel(parseInt(white.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), r));
     const wg = Math.round(mix1channel(parseInt(white.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), r));
     const wb = Math.round(mix1channel(parseInt(white.slice(5, 7), 16), parseInt(color.slice(5, 7), 16), r));
