@@ -6,14 +6,12 @@ import styles from './container.module.css';
 import LoadingOverlay from './loading';
 import Dot from './dot.jsx';
 
-const LegendOptions = [
-    'All Cases',
-    'Dairy Farms',
-    'Poultry Farms',
-    'Wild Birds',
-    'Wildlife',
-    'Human',
-];
+import ScaleKey from '../scale/scale.jsx';
+
+import allData from '../../../public/data/combined_data.json';
+
+const LegendDefault = 'All Cases';
+const WildlifeDefault = 'All Species';
 
 const keyColor = {
     'Dairy Farms': 'purple',
@@ -23,40 +21,68 @@ const keyColor = {
     'Human': 'orange',
 };
 
-const WildlifeOptions = [
-    'All Species',
-    'Red fox',
-    'House mouse',
-    'Bobcat',
-    'Virginia opossum',
-    'Raccoon',
-    'Coyote',
-    'Striped skunk',
-    'Fisher',
-    'Harbor seal',
-    'Grey seal',
-    'Skunk (unidentified)',
-    'Bottlenose dolphin',
-    'Amur Leopard',
-    'Red Fox',
-    'American black bear',
-    'Kodiak bear',
-    'Grizzly bear',
-    'Mountain lion',
-    'Amur tiger',
-    'North American river otter',
-    'American marten',
-    'Polar bear',
-    "Abert's squirrel",
-    'Domestic cat',
-    'American mink'
-];
+
+function dataIngest(data) {
+    // allData json structure:
+    // allData['countyID'] = { 'source': ['row1', 'row2', ...], 'name': 'countyName' }
+    // maxMins = [[maxPoultry, 0], [maxWildBirds, 0], [maxWildlife, 0]]
+    // maxes = { 'Dairy Farms': maxDairy, 'Poultry Farms': maxPoultry, 'Wild Birds': maxWildBirds, 'Human': maxHuman, 'All Cases': maxAll, 'All Species': maxAllSpecies, 'Otter': maxOtter}
+    let maxes = {};    
+    let legendOptions = [LegendDefault];
+    let wildlifeOptions = [WildlifeDefault];
+    for (var entry in data) {
+        var countyData = undefined;
+        
+        if (entry == '') {
+            continue;
+        } else {
+            countyData = data[entry];
+        }
+
+        // base case
+        if (Object.keys(maxes).length === 0) {
+            for (const source of Object.keys(countyData)) {
+                if (source != 'name') {
+                    maxes[source] = 0;
+                    legendOptions.push(source);
+                }
+            }
+        }
+
+        for (const source of Object.keys(countyData)) {
+            if (source != 'name') {
+                if (countyData[source].length > maxes[source]) {
+                    maxes[source] = countyData[source].length;
+                }
+
+                if (source == 'Wildlife') {
+                    // wildlife is a list of comma separated strings: Wildlife,California,Mono,Mountain lion...
+                    for (const line of countyData[source]) {
+                        const species = line.split(',')[3].trim() + '';
+                        // if not in maxes, add it
+                        if (!(species in maxes)) {
+                            maxes[species] = 0;
+                            wildlifeOptions.push(species);
+                        }
+                        if (countyData[source].length > maxes[species]) {
+                            maxes[species] = countyData[source].length;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return [maxes, legendOptions, wildlifeOptions];
+}
 
 
 export default function Container() {
     // map container has the controls and the key for the map
 
     const [loading, setLoading] = React.useState(true);
+    
+    const [Maxes, LegendOptions, WildlifeOptions] = dataIngest(allData);
 
     const [selectedLegend, setSelectedLegend] = React.useState(LegendOptions[0]);
     const [selectedWildlife, setSelectedWildlife] = React.useState(WildlifeOptions[0]);
@@ -69,6 +95,7 @@ export default function Container() {
         e.preventDefault();
         setDragging(true);
     };
+
 
     React.useEffect(() => {
 
@@ -144,22 +171,15 @@ export default function Container() {
                             </ul>
                         </div>
                     </div> : null}
-                {/*selectedLegend == 'Wildlife' && selectedWildlife == 'All Species' ?
-                    <div className={styles.wildlifeKeyWrapper + ' ' + styles.legendColumn + ' ' + styles.c3}>
-                        <ul className={styles.wildlifeKey + ' ' + styles.key}>
-                            {WildlifeOptions.slice(1).map((key) => (
-                                <li key={key} className={styles.legendItem}>
-                                    <Dot color={wColor[key]} />
-                                    <div className={styles.legendLabel}>{key}</div>
-                                </li>
-                            ))}
-                        </ul>
-                    </div> : null*/}
+                {selectedLegend != LegendOptions[0] ?
+                    <div className={styles.scale + ' ' + styles.legendColumn + ' ' + styles.c1}>
+                        <ScaleKey color={keyColor[selectedLegend]} />
+                    </div> : null}
             </div >
 
             <div ref={dragHandler} onMouseDown={startDrag} style={{ background: dragging ? '#EEF' : '#FFF' }} className={styles.dragHandle} />
 
-            <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} />
+            <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} Maxes={Maxes} />
         </div >
     );
 };

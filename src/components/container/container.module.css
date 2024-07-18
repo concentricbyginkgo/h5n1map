@@ -3,10 +3,11 @@
     /* contains the sidebar and the map */
     display: flex;
     flex-direction: row;
+    font-size: 22;
     height: 100vh;
     overflow: hidden;
     font-family: sofia-pro, sans-serif;
-    color: #00132f;
+    color: #0c0a10;
     text-align: left;
 }
 
@@ -71,14 +72,14 @@
     font-weight: bold;
     padding: 15px;
     cursor: pointer;
-    border: 1px solid #00132f;
+    border: 1px solid #0c0a10;
     border-radius: 15px;
     width: 95%; /* Set a fixed width */
     display: inline-block; /* Ensure the width is respected */
 }
 
 .selectedLabel {
-    background-color: #000000;
+    background-color: #0c0a10;
     color: white;
 }
 
@@ -133,7 +134,7 @@
     width: 95%; /* Set a fixed width */
     display: inline-block; /* Ensure the width is respected */
     /* max display length and gradient fade out near bottom */
-    background: linear-gradient(to bottom, #ffffff, #ffffff00);
+    background: linear-gradient(to bottom, #ffffff, #0c0a1000);
     max-height: 30vh;
     overflow: scroll;
     scrollbar-width: none;
@@ -145,10 +146,6 @@
 
 .selectedSubtle {
     font-weight: 800;
-}
-
-.legendKey {
-    font-size: 3em;
 }
 
 .wildlifeKey {
@@ -183,12 +180,12 @@
 .wildlifeKeyWrapper::before {
     top: 0;
     height: 20px; /* Shorter height for a more sudden gradient */
-    background: linear-gradient(to bottom, #ffffff, rgba(255, 255, 255, 0));
+    background: linear-gradient(to bottom, #ffffff, #0c0a1000);
 }
 
 
 .wildlifeKeyWrapper::after {
     bottom: 0;
     height: 60px; /* Adjust the height as needed */
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff);
+    background: linear-gradient(to bottom, #0c0a1000, #ffffff);
 }

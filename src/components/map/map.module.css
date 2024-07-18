@@ -11,25 +11,6 @@
     min-height: 100vh !important;
 }
 
-.tooltip {
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.75);
-    color: white;
-    padding: 5px;
-    border-radius: 3px;
-    pointer-events: none;
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out;
-    z-index: 99999;
-    transform: translate(6px, -50%);
-    /* respect newlines */
-    white-space: pre-wrap;
-}
-
-.tooltip.visible {
-    opacity: 1;
-}
-
 .county {
     /*
     stroke: #b3b3b3;

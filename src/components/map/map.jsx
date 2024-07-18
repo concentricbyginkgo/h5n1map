@@ -2,12 +2,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { zoom as d3Zoom, zoomIdentity } from 'd3-zoom';
 import { select } from 'd3-selection';
-import allData from '../../../public/data/combined_data.json';
 // import allData from '../../../public/data/combined_data.csv';
 // import codes from '../../../public/data/countycodes.csv';
 // import data from '../../../public/data/combined_h5n1_animal_surveillance_data.csv';
 // import states from '../../../public/data/states.csv';
 import styles from './map.module.css';
+import Tooltip from './tooltip';
 
 function setTopIndex(element) {
     const stopElement = 'countiesOverlay';
@@ -16,21 +16,17 @@ function setTopIndex(element) {
         return;
     }
     const parent = element.parentNode;
-
     // get the index of the element
     const index = Array.from(parent.children).indexOf(element);
-
     // remove the element from the parent
     parent.removeChild(element);
-
     // add the element back to the parent at the top
     parent.appendChild(element);
-
     // recurse
     setTopIndex(parent);
 }
 
-function notNameLength(cData) {
+function notNameLength(cData) { // this just grabs every entry in the cData object except for the name
     let keys = Object.keys(cData);
     keys = keys.filter((key) => key !== 'name');
     let len = 0;
@@ -70,38 +66,6 @@ function hoverListenerConstructor(cData, setTooltip, parentRef, overlay) {
     };
 }
 
-function singleColor(d, max, min) {
-    const c = 179; // minimum value
-    const fc = c.toString(16).padStart(2, '0'); // Ensure fc is two characters long
-
-
-    // Apply logarithmic scaling
-    const logMin = Math.log(min + 1); // Adding 1 to avoid log(0)
-    const logMax = Math.log(max + 1);
-    const logCases = Math.log(d + 1);
-
-    // Normalize the logarithmic value to the range [0, 1]
-    const normalizedLog = (logCases - logMin) / (logMax - logMin);
-
-    // Scale the normalized value to the range [179, 255]
-    const cValue = Math.floor(normalizedLog * (255 - c) + c);
-    const color = cValue.toString(16).padStart(2, '0'); // Ensure red is two characters long
-    if (color == 'NaN') {
-        throw new Error(`Color is NaN: ${d}, ${max}, ${min}`);
-    }
-
-    return color;
-}
-
-
-function singleChannelColor(d, max, min, targ, selectedMain) {
-
-    if (selectedMain !== targ && selectedMain !== 'All Cases') {
-        return 'b3';
-    }
-
-    return singleColor(d, max, min);
-}
 
 function addEventListenersToID(id, cData, setTooltip, parentRef) {
     const element = document.getElementById(id);
@@ -119,7 +83,25 @@ function addEventListenersToID(id, cData, setTooltip, parentRef) {
     }
 }
 
-function setFillsToLegend(selectedMain, maxs) {
+function singleColor(d, max, min) {
+    const c = 179; // minimum value
+
+    // Apply logarithmic scaling
+    const logMin = Math.log(min + 1); // Adding 1 to avoid log(0)
+    const logMax = Math.log(max + 1);
+    const logCases = Math.log(d + 1);
+
+    // Normalize the logarithmic value to the range [0, 1]
+    const normalizedLog = (logCases - logMin) / (logMax - logMin);
+
+    // Scale the normalized value to the range [179, 255]
+    const cValue = Math.floor(normalizedLog * (255 - c) + c);
+    const color = cValue.toString(16).padStart(2, '0'); // Ensure red is two characters long
+
+    return color;
+}
+
+function setFillsTo(fillFunction, allData, max) {
     const ccs = Object.keys(allData);
     for (const id of ccs) {
         const countyCode = `c${id}`;
@@ -127,212 +109,70 @@ function setFillsToLegend(selectedMain, maxs) {
 
         const datum = allData[id];
 
-        if (document.getElementById(countyCode)) {
+        if (document.getElementById(countyCode) && document.getElementById(overlayCode)) {
             const element = document.getElementById(countyCode);
             const overlay = document.getElementById(overlayCode);
 
             // set fill color based on number of cases
             if (notNameLength(datum) > 0) {
 
-                if (selectedMain === 'Human') {
-                    const hmax = 5;
-                    const hmin = 0;
-                    const human = datum['Human'].length;
-                    const fill = `#${singleChannelColor(human, hmax, hmin, 'Human', selectedMain)}b3b3`;
-                    element.setAttribute('fill', fill);
-                    element.setAttribute('stroke', fill);
-                    overlay.setAttribute('fill', fill);
-                    overlay.setAttribute('stroke', fill);
-                } else if (selectedMain === 'Dairy Farms') {
-                    // no data for dairy farms atm, set to default
-                    const fill = '#b3b3b3';
-                    element.setAttribute('fill', fill);
-                    element.setAttribute('stroke', fill);
-                    overlay.setAttribute('fill', fill);
+                element.setAttribute('fill', fillFunction(datum, max));
+                element.setAttribute('stroke', fillFunction(datum, max));
 
-                } else {
-                    const red = singleChannelColor(datum['Poultry Farms'].length, maxs[0], 0, 'Poultry Farms', selectedMain);
-                    const green = singleChannelColor(datum['Wild Birds'].length, maxs[1], 0, 'Wild Birds', selectedMain);
-                    const blue = singleChannelColor(datum['Wildlife'].length, maxs[2], 0, 'Wildlife', selectedMain);
+                overlay.setAttribute('fill', fillFunction(datum, max));
+                overlay.setAttribute('stroke', fillFunction(datum, max));
 
-                    const fill = `#${red}${green}${blue}`;
-
-                    element.setAttribute('fill', fill);
-                    element.setAttribute('stroke', fill);
-                    overlay.setAttribute('fill', fill);
-                    overlay.setAttribute('stroke', fill);
-                }
             }
         }
     }
 }
 
-
-function setFillsToWildlife(selectedSub, max) {
-    // 2 most common: 
-    // Red fox                       83
-    // House mouse                   47
-    // remainder:                   242
-
-    // so red fox will be red, house mouse will be green, and the rest will be blue
-    const ccs = Object.keys(allData);
-    for (const id of ccs) {
-        const countyCode = `c${id}`;
-        const overlayCode = `b${id}`;
-
-        const datum = allData[id];
-
-        if (document.getElementById(countyCode)) {
-            const element = document.getElementById(countyCode);
-            const overlay = document.getElementById(overlayCode);
-
-            // set fill color based on number of cases
-            if (notNameLength(datum) > 0) {
-                const c = 179; // minimum value
-                const fc = c.toString(16).padStart(2, '0'); // Ensure fc is two characters long
-
-                let red = fc;
-                let green = fc;
-                let blue = fc;
-
-                if (datum['Wildlife'].length > 0) {
-                    if (selectedSub == 'All Species') {
-                        const redFox = datum['Wildlife'].filter((row) => {
-                            let species = row.split(',')[3];
-                            return species.toLowerCase() == 'red fox';
-                        }).length;
-
-                        const houseMouse = datum['Wildlife'].filter((row) => {
-                            let species = row.split(',')[3];
-                            return species.toLowerCase() == 'house mouse';
-                        }).length;
-
-                        if (redFox > 0) {
-                            red = singleColor(redFox, 5, 0);
-                        }
-                        if (houseMouse > 0) {
-                            green = singleColor(houseMouse, 47, 0);
-                        }
-
-                        const other = datum['Wildlife'].length - redFox - houseMouse;
-                        if (other > 0) {
-                            blue = singleColor(other, 8, 0);
-                        }
-
-                        const fill = `#${red}${green}${blue}`;
-
-                        element.setAttribute('fill', fill);
-                        element.setAttribute('stroke', fill);
-                        overlay.setAttribute('fill', fill);
-                        overlay.setAttribute('stroke', fill);
-                    } else {
-                        // search the datum for the selectedSub and display in blue
-                        let amax = selectedSub === 'House mouse' ? 47 : selectedSub === 'Red Fox' ? 5 : 8;
-
-                        // seperate the row by commas, where species is 3rd index
-                        const selected = datum['Wildlife'].filter((row) => {
-                            let species = row.split(',')[3]; 
-                            return species.toLowerCase() == selectedSub.toLowerCase();
-                        }).length;
-                        
-                        blue = singleColor(selected, amax, 0);
-
-                        const fill = `#${red}${green}${blue}`;
-
-                        element.setAttribute('fill', fill);
-                        element.setAttribute('stroke', fill);
-                        overlay.setAttribute('fill', fill);
-                        overlay.setAttribute('stroke', fill);
-                    }
-                } else {
-                    element.setAttribute('fill', `#${fc}${fc}${fc}`);
-                    element.setAttribute('stroke', `#${fc}${fc}${fc}`);
-                    overlay.setAttribute('fill', `#${fc}${fc}${fc}`);
-                    overlay.setAttribute('stroke', `#${fc}${fc}${fc}`);
-                }
-            }
-        }
-    }
+function countyColoring(datum, max) {
+    return '#ffb3b3';
 }
 
-function setMaxes() {
-    let maxPoultry = 0;
-    let maxWildBirds = 0;
-    let maxWildlife = 0;
-
-    for (const id in allData) {
-        const datum = allData[id];
-        if (datum['Poultry Farms'].length > maxPoultry) {
-            maxPoultry = datum['Poultry Farms'].length;
-        }
-        if (datum['Wild Birds'].length > maxWildBirds) {
-            maxWildBirds = datum['Wild Birds'].length;
-        }
-        if (datum['Wildlife'].length > maxWildlife) {
-            maxWildlife = datum['Wildlife'].length;
-        }
-    }
-
-    return [maxPoultry, maxWildBirds, maxWildlife];
+function stateColoring(datum, max) {
+    return '#b3ffb3';
 }
 
-export default function Map(props) {
+function wildlifeColoring(datum, max) {
+    return '#b3b3ff';
+}
+
+export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}
     const [tooltip, setTooltip] = useState({ visible: false, name: '', x: 0, y: 0 });
     const svgRef = useRef(null);
     const gRef = useRef(null);
     const parentRef = useRef(null);
 
-    // const [focusD, setFocusD] = useState(false);
-
-    // useEffect(() => {
-    //     // grace period to prevent flickering
-    //     const timeout = setTimeout(() => {
-    //         setFocusD(tooltip.visible);
-    //     }, 100);
-    //     return () => clearTimeout(timeout);
-    // }, [tooltip.visible]);
-
     const [selectedMain, setSelectedMain] = useState('All Cases');
     const [selectedSub, setSelectedSub] = useState('All Species');
 
-    let MaxPoultry = 0;
-    let MaxWildBirds = 0;
-    let MaxWildlife = 0;
 
-    let maxes = setMaxes();
-    MaxPoultry = maxes[0];
-    MaxWildBirds = maxes[1];
-    MaxWildlife = maxes[2];
-
-
-    useEffect(() => {
-        //console.log('Selected Main:', selectedMain);
+    useEffect(() => { // listens for changes in main legend, wildlife and daily farms are special cases
         setSelectedMain(props.selectedLegend);
-        if (props.selectedLegend != 'Wildlife') {
-            setFillsToLegend(props.selectedLegend, [MaxPoultry, MaxWildBirds, MaxWildlife]);
-        } else {
-            setFillsToWildlife(props.selectedWildlife, MaxWildlife);
+        if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Daily Farms') {
+            setFillsTo(countyColoring, props.allData, props.Maxes[props.selectedLegend]);
+        } else if (props.selectedLegend == 'Daily Farms') { // this is different because dairy data is state level instead of county level
+            setFillsTo(stateColoring, props.allData, props.Maxes[props.selectedLegend]);
+        } else if (props.selectedLegend == 'Wildlife') { // this is similar, but we need to check the sub legend
+            setFillsTo(wildlifeColoring, props.allData, props.Maxes[props.selectedWildlife]);
         }
     }, [props.selectedLegend]);
 
-    useEffect(() => {
-        //console.log('Selected Sub:', selectedSub);
+    useEffect(() => { // listens for changes in wildlife sub legend
         setSelectedSub(props.selectedWildlife);
         if (props.selectedLegend == 'Wildlife') {
-            setFillsToWildlife(props.selectedWildlife, MaxWildlife);
+            setFillsTo(wildlifeColoring, props.allData, props.Maxes[props.selectedWildlife]);
         }
     }, [props.selectedWildlife]);
 
 
-    useEffect(() => {
-        // allData json structure:
-        // allData['countyID'] = { 'source': ['row1', 'row2', ...], 'name': 'countyName' }
-        // maxMins = [[maxPoultry, 0], [maxWildBirds, 0], [maxWildlife, 0]]
-
-        const ccs = Object.keys(allData);
+    useEffect(() => { // loads the initial data
+        const ccs = Object.keys(props.allData);
         for (const id of ccs) {
             const countyCode = `c${id}`;
-            const datum = allData[id];
+            const datum = props.allData[id];
 
             if (document.getElementById(countyCode)) {
                 addEventListenersToID(countyCode, datum, setTooltip, parentRef);
@@ -341,7 +181,7 @@ export default function Map(props) {
         props.setLoading(false);
     }, []);
 
-    useEffect(() => {
+    useEffect(() => { // zoom and pan
         const svg = select(svgRef.current);
         const g = select(gRef.current);
 
@@ -18991,14 +18831,7 @@ export default function Map(props) {
                     </g>
                 </g>
             </svg>
-            {tooltip.visible && (
-                <div
-                    className={styles.tooltip}
-                    style={{ left: tooltip.x + 'px', top: tooltip.y + 'px' }}
-                >
-                    {tooltip.name}
-                </div>
-            )}
+            {tooltip.visible && ( <Tooltip {...{x: tooltip.x, y: tooltip.y, text: tooltip.name}} /> )}
         </div>
     );
 }
