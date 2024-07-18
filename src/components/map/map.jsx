@@ -5,7 +5,7 @@ import { select } from 'd3-selection';
 // import allData from '../../../public/data/combined_data.csv';
 // import codes from '../../../public/data/countycodes.csv';
 // import data from '../../../public/data/combined_h5n1_animal_surveillance_data.csv';
-// import states from '../../../public/data/states.csv';
+import states from '../../../public/data/states.csv';
 import styles from './map.module.css';
 import Tooltip from './tooltip';
 
@@ -123,9 +123,10 @@ function mix1channel(rgb1, rgb2, ratio) {
 
 function whiteToColorGradient(value, color, max, min = 1) {
     const white = '#ffffff';
-    const wr = Math.round(mix1channel(parseInt(white.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), .25));
-    const wg = Math.round(mix1channel(parseInt(white.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), .25));
-    const wb = Math.round(mix1channel(parseInt(white.slice(5, 7), 16), parseInt(color.slice(5, 7), 16), .25));
+    const ra = .1;
+    const wr = Math.round(mix1channel(parseInt(white.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), ra));
+    const wg = Math.round(mix1channel(parseInt(white.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), ra));
+    const wb = Math.round(mix1channel(parseInt(white.slice(5, 7), 16), parseInt(color.slice(5, 7), 16), ra));
     const halfwhite = `#${wr.toString(16).padStart(2, '0')}${wg.toString(16).padStart(2, '0')}${wb.toString(16).padStart(2, '0')}`;
     
     const ratio = (value - min) / (max - min);
@@ -153,12 +154,107 @@ function countyColoringC(selectedLegend) { // constructor for county coloring
     }
 }
 
-function stateColoring(datum, max, color) {
-    return color;
+function stateColoringC(allData) { // constructor for state coloring
+    
+    let dairyData = allData['']['Dairy Farms'];
+    
+    let dairyD = {};
+
+    for (let line of dairyData) {
+        let abbrev = line.split(',')
+        abbrev = abbrev[abbrev.length - 2];
+        
+        dairyD[abbrev] = dairyD[abbrev] === undefined ? 1 : dairyD[abbrev] + 1;
+    }
+
+    const maxD = Math.max(...Object.values(dairyD));
+
+    for (let key of Object.keys(dairyD)) {
+        for (let stateI of states) {
+            if (stateI.abbreviation == key) {
+                let statename = stateI.state.replace(' ', '_');
+                if (document.getElementById(statename)) {
+                    for (let child of document.getElementById(statename).children) {
+                        child.setAttribute('fill', whiteToColorGradient(dairyD[key], '#519a8f', maxD)); 
+                        child.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
+                    }
+                }
+            }
+        }
+    }
+
+    return function stateColoring(datum, max, color) {
+        for (const source of Object.keys(datum)) {
+            if (source != 'name' && datum[source].length > 0) {
+                let abbreve = datum[source][0].split(',')
+                abbreve = abbreve[abbreve.length - 2];
+                                
+                if (abbreve in dairyD) {
+                    return whiteToColorGradient(dairyD[abbreve], color, maxD);
+                } else {
+                    return '#b3b3b3';
+                }
+            }
+        }
+    }    
 }
 
-function wildlifeColoring(datum, max, color) {
-    return color;
+function dairyFix() {
+    // resets all colorr of classname 'county' to #b3b3b3
+    console.log('dairy fix');
+    let container1 = document.getElementById('counties');
+    let container2 = document.getElementById('countiesOverlay');
+
+    function recurseUntilPath(element) {
+        if (element.tagName == 'path') {
+            element.setAttribute('fill', '#b3b3b3');
+            element.setAttribute('stroke', '#b3b3b3');
+        } else {
+            for (let child of element.children) {
+                recurseUntilPath(child);
+            }
+        }
+    }
+
+    for (let child of container1.children) {
+        recurseUntilPath(child);
+    }
+
+    for (let child of container2.children) {
+        recurseUntilPath(child);
+    }
+}
+
+function wildlifeColoringC(wildlife) { // constructor for wildlife coloring
+    return function wildlifeColoring(datum, max, color) {
+        if (datum['Wildlife'] === undefined) {
+            return '#b3b3b3';
+        } else if (datum['Wildlife'].length <= 0) {
+            return '#b3b3b3';
+        } else {
+            if (wildlife == 'All Species') {
+                return whiteToColorGradient(datum['Wildlife'].length, color, max);
+            } else {
+                let species_amount = 0;
+                for (let species of datum['Wildlife']) {
+                    species = species.split(',')[2].trim() + '';
+                    if (species == wildlife) {
+                        species_amount += 1;
+                    }
+                } 
+
+                if (species_amount > 0) {
+                    if (species_amount == 1 && max == 1) {
+                        return color;
+                    } else {
+                        return whiteToColorGradient(species_amount, color, max);
+                    }
+                } else {
+                    return '#b3b3b3';
+                }
+            }
+        }
+    }
 }
 
 export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}
@@ -169,23 +265,29 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
     const [selectedMain, setSelectedMain] = useState('All Cases');
     const [selectedSub, setSelectedSub] = useState('All Species');
+    const [offDairy, setOffDairy] = useState('All Cases');
 
+    useEffect(() => { // listens for changes in main legend, wildlife and dairy farms are special cases
+        if (offDairy == 'Dairy Farms' && props.selectedLegend != 'Dairy Farms') {
+            dairyFix();
+            setOffDairy(props.selectedLegend);
+        }
 
-    useEffect(() => { // listens for changes in main legend, wildlife and daily farms are special cases
         setSelectedMain(props.selectedLegend);
-        if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Daily Farms') {
+        if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Dairy Farms') {
             setFillsTo(countyColoringC(props.selectedLegend), props.allData, props.Maxes[props.selectedLegend], props.color);
-        } else if (props.selectedLegend == 'Daily Farms') { // this is different because dairy data is state level instead of county level
-            setFillsTo(stateColoring, props.allData, props.Maxes[props.selectedLegend], props.color);
+        } else if (props.selectedLegend == 'Dairy Farms') { // this is different because dairy data is state level instead of county level
+            setOffDairy('Dairy Farms');
+            setFillsTo(stateColoringC(props.allData), props.allData, props.Maxes[props.selectedLegend], props.color);
         } else if (props.selectedLegend == 'Wildlife') { // this is similar, but we need to check the sub legend
-            setFillsTo(wildlifeColoring, props.allData, props.Maxes[props.selectedWildlife], props.color);
+            setFillsTo(wildlifeColoringC(props.selectedWildlife), props.allData, props.Maxes[props.selectedWildlife], props.color);
         }
     }, [props.selectedLegend]);
 
     useEffect(() => { // listens for changes in wildlife sub legend
         setSelectedSub(props.selectedWildlife);
         if (props.selectedLegend == 'Wildlife') {
-            setFillsTo(wildlifeColoring, props.allData, props.Maxes[props.selectedWildlife], props.color);
+            setFillsTo(wildlifeColoringC(props.selectedWildlife), props.allData, props.Maxes[props.selectedWildlife], props.color);
         }
     }, [props.selectedWildlife]);
 

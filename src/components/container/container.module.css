@@ -138,6 +138,7 @@
     max-height: 30vh;
     overflow: scroll;
     scrollbar-width: none;
+    list-style: none;
 }
 
 .wildlifeList li label {

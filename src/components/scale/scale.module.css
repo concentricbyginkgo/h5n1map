@@ -14,3 +14,7 @@
 .max {
     float: right;
 }
+
+.scaleKey {
+    max-width: 375px;
+}

@@ -48,6 +48,7 @@ function dataIngest(data) {
                 }
             }
             maxes['All Cases'] = 0;
+            maxes['All Species'] = 0;
         }
 
         var allmax = 0;
@@ -55,16 +56,14 @@ function dataIngest(data) {
             if (source != 'name') {
                 if (countyData[source].length > maxes[source]) {
                     maxes[source] = countyData[source].length;
-                    console.log('source', source);
-                    console.log('countyData[source]', countyData[source]);
-                    console.log('maxes[source]', maxes[source]);
                 }
                 allmax += countyData[source].length;
 
                 if (source == 'Wildlife') {
                     // wildlife is a list of comma separated strings: Wildlife,California,Mono,Mountain lion...
+                    let specmax = 0;
                     for (const line of countyData[source]) {
-                        const species = line.split(',')[3].trim() + '';
+                        const species = line.split(',')[2].trim() + '';
                         // if not in maxes, add it
                         if (!(species in maxes)) {
                             maxes[species] = 0;
@@ -72,8 +71,11 @@ function dataIngest(data) {
                         }
                         if (countyData[source].length > maxes[species]) {
                             maxes[species] = countyData[source].length;
-                            console.log('maxes[species]', maxes[species]);
+                            specmax = countyData[source].length;
                         }
+                    }
+                    if (specmax > maxes['All Species']) {
+                        maxes['All Species'] = specmax;
                     }
                 }
             }
@@ -92,7 +94,6 @@ export default function Container() {
     const [loading, setLoading] = React.useState(true);
     
     const [Maxes, LegendOptions, WildlifeOptions] = dataIngest(allData);
-
     const [selectedLegend, setSelectedLegend] = React.useState(LegendOptions[0]);
     const [selectedWildlife, setSelectedWildlife] = React.useState(WildlifeOptions[0]);
 
@@ -182,7 +183,7 @@ export default function Container() {
                     </div> : null}
                 {selectedLegend != LegendOptions[0] ?
                     <div className={styles.scale + ' ' + styles.legendColumn + ' ' + styles.c1}>
-                        <ScaleKey color={keyColor[selectedLegend]} max={Maxes[selectedLegend]} />
+                        <ScaleKey color={keyColor[selectedLegend]} max={ selectedLegend == 'Wildlife' ? selectedWildlife == WildlifeOptions[0] ? Maxes['All Species'] : Maxes[selectedWildlife] : Maxes[selectedLegend]} stateCounty='county' />
                     </div> : null}
             </div >
 
