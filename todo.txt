@@ -1,0 +1,25 @@
+all: 
+    key dot outlines
+
+state and county:
+    key gradient
+
+state coloring:
+    on shared: only color counties that have no other color, and color with one hue
+    on both: outline the state
+
+point:
+    make point mode lmao
+
+fonts:
+    title: active grotesk medium, 29.3 pt size. 32.2 pt line spacing
+        Bird Flu (H5N1)\nU.S. Tracker
+
+    key: 
+        dot title: active grotesk medium, 13 pt size. 20.2 pt line spacing
+        title: active grotesk medium, 18.9 pt size. 29.4 pt line spacing
+        subtitle: active grotesk medium, 13 pt size. 20.2 pt line spacing
+        numbers: ibm plex mono, 13 pt size. 20.2 pt line spacing
+
+    selector: ibm plex mono, 11 pt size. 12 pt line spacing
+    subselector: active grotesk medium, 13 pt size. 20.2 pt line spacing

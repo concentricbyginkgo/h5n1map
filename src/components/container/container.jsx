@@ -21,6 +21,14 @@ const keyColor = {
     'Human': '#f7c242',
 };
 
+const keyType = {
+    'Dairy Farms': 'state',
+    'Poultry Farms': 'county',
+    'Wild Birds': 'county',
+    'Wildlife': 'county',
+    'Human': 'point',
+};
+
 function getDairyData(allData) {
     let dairyData = allData['']['Dairy Farms'];
 
