@@ -378,7 +378,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
     return (
         <div ref={parentRef} className={styles.mapContainer}>
-            <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1514.02 989.5">
+            <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" viewBox="-150 0 1900 1000" className={styles.map}>
                 <defs>
                     {
                         gradients.map((gradient) => (

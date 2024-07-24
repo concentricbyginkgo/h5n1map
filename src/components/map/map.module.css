@@ -1,14 +1,13 @@
 .mapContainer {
     flex: 1 1 auto !important;
     position: relative;
-    display: flex;
-    min-height: 100vh !important;
+    display: flex;    
     justify-content: center;
+    height: 100vh !important;
 }
 
 .mapImage {
     z-index: -1 !important;
-    min-height: 100vh !important;
 }
 
 .county {

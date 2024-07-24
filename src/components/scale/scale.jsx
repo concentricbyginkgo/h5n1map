@@ -4,7 +4,7 @@ function mix1channel(rgb1, rgb2, ratio) {
     return rgb1 + (rgb2 - rgb1) * ratio;
 }
 
-export default function ScaleKey( { color, max, stateCounty = 'county' } ) {
+export default function Scale( { color, max, stateCounty = 'county' } ) {
     // half white half color
     const white = '#ffffff';
     const r = .3
