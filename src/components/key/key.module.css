@@ -2,4 +2,19 @@
     position: absolute; /* bottom left */
     bottom: 0;
     left: 0;
+    margin-bottom: 3%;
+    margin-left: 2%;
+    font-family: 'Aktive Grotesk', 'sans-serif';
+    font-weight: 500;
+    font-size: 1rem;
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+.key ul {
+    list-style-type: none;
+}
+
+.key ul li {
+    margin-bottom: 5px;
 }

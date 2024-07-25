@@ -152,7 +152,7 @@ export default function Container() {
             </div>
             <div className={styles.fg}>
                 <Title />
-                <Key keyColor={ selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} keyType={ selectedLegend == 'All Cases' ? keyType : keyType[selectedLegend]} 
+                <Key max={ max } keyColor={ selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} keyType={ selectedLegend == 'All Cases' ? keyType : keyType[selectedLegend]} 
                     selected={ selectedLegend == 'All Cases' ?  // if selectedLegend is 'All Cases' then show all the options
                         LegendOptions : 
                             selectedLegend == 'Wildlife' ? // if we have selected wildlife, do more filtering

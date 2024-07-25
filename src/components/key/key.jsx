@@ -1,16 +1,26 @@
 import styles from './key.module.css';
-
 import Scale from '../scale/scale';
-import Dot
- from '../dot/dot';
+import Dot from '../dot/dot';
+
 export default function Key(props) {
-    console.log('Key:');
-    console.log(props);
+    // console.log('Key:');
+    // console.log(props);
 
     return (
-        <div className={styles.key}>
-            <h3>Title</h3>          
-            <h5>Subtitle</h5>
+        <div className={styles.key + ' borderBox'}>
+            { typeof props.keyColor === 'string' && props.selected != 'Human' ?
+                <h3>{props.selected}</h3> :
+                null
+            }
+            { typeof props.keyColor === 'string' && props.selected != 'Human' ?
+                <Scale color={props.keyColor} max={props.max} stateCounty={props.keyType} /> :
+                <ul> 
+                    { props.selected == 'Human' ? <li key={0}><Dot key={0} color={props.keyColor} label='Human' outline={true} /></li> : 
+                    Object.keys(props.keyColor).map((key, index) => {
+                        return <li key={index}><Dot key={index} color={props.keyColor[key]} label={key} outline={props.keyType[key] != 'county'} /></li>
+                    }) }
+                </ul>
+            }
         </div>
     );
 }

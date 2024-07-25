@@ -1,2 +1,4 @@
 .subselector {
+    position: absolute;
+    transform: translate(-117%, -8%);
 }

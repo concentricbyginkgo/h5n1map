@@ -1,5 +1,54 @@
 .selector {
     position: absolute; /* pinned to the right of the screen */
     right: 0;
-    top: 10%;
+    top: 0;
+    margin-top: 4.5%;
+    margin-right: 2%;
+}
+
+.active {
+    background-color: #0c0a10;
+    color: white;
+}
+
+.inactive {
+    background-color: white;
+    color: #0c0a10;
+}
+
+.active svg * {
+    stroke: white;
+}
+
+.inactive svg * {
+    stroke: #0c0a10;
+}
+
+.selector svg {
+    max-width: 50px;
+    max-height: 50px;
+    min-width: 20px;
+    min-height: 20px;
+    width: 5vw;
+    height: 5vw;
+}
+
+.selector ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+.selector li {
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.divider {
+    border-top: 1px solid #0c0a10;
+    margin: 0 10%;
 }

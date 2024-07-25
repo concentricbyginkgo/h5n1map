@@ -23,3 +23,5 @@ fonts:
 
     selector: ibm plex mono, 11 pt size. 12 pt line spacing
     subselector: active grotesk medium, 13 pt size. 20.2 pt line spacing
+
+match colors!
