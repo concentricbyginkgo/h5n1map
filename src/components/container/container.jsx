@@ -4,7 +4,7 @@ import styles from './container.module.css';
 
 import LoadingOverlay from './loading/loading';
 
-import title from '../title/title';
+import Title from '../title/title';
 import Key from '../key/key';
 import Selector from '../selector/selector';
 
@@ -151,6 +151,17 @@ export default function Container() {
                 <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} color={ selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} max={max} dairyData={getDairyData(allData)} />
             </div>
             <div className={styles.fg}>
+                <Title />
+                <Key keyColor={ selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} keyType={ selectedLegend == 'All Cases' ? keyType : keyType[selectedLegend]} 
+                    selected={ selectedLegend == 'All Cases' ?  // if selectedLegend is 'All Cases' then show all the options
+                        LegendOptions : 
+                            selectedLegend == 'Wildlife' ? // if we have selected wildlife, do more filtering
+                                selectedWildlife == WildlifeOptions[0] ? // if we have selected 'All Species' then show aggregated wildlife
+                                    'Wildlife' : // aggregated wildlife
+                                        selectedWildlife : // specific wildlife
+                                            selectedLegend} // just the normal legend 
+                />
+                <Selector setSelectedLegend={setSelectedLegend} selectedLegend={selectedLegend} setSelectedWildlife={setSelectedWildlife} selectedWildlife={selectedWildlife} LegendOptions={LegendOptions} WildlifeOptions={WildlifeOptions} />
             </div>
         </div >
     );

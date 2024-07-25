@@ -2,7 +2,10 @@ import styles from './selector.module.css';
 
 import Subselector from './subselector/subselector.jsx';
 
-export default function Selector() {
+export default function Selector(props) {
+    console.log('Selector:');
+    console.log(props);
+    
     return (
         <div className={styles.selector}>
             <ul>
