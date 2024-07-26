@@ -1,4 +1,65 @@
+.bb {
+    position: absolute;
+    transform: translate(-105%, -104%);
+    color: #0c0a10;
+    text-align: left !important;
+    padding: calc(max(0.5%, 12px));
+    font-family: 'Aktive Grotesk', 'sans-serif';
+    font-weight: 600;
+}
+
+@media (max-height: 500px) {
+    /* convert to a horizontal list */
+
+    .bb {
+        transform: translate(-72%, 25%) !important;
+    }
+}
+
+.dropdownToggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    white-space: nowrap;
+    min-width: 10vw;
+}
+
 .subselector {
     position: absolute;
-    transform: translate(-117%, -8%);
+    top: 101%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: scroll;
+    max-height: 20vh;
+    scrollbar-width: none;
+}
+
+.subselector li {
+    padding: 3px;
+    cursor: pointer;
+}
+
+.subselector li:hover,
+.subselector li.active {
+    background-color: #f0f0f0;
+}
+.arrow {
+    height: 40% !important;
+}
+
+.arrow path {
+    stroke: #0c0a10 !important;
+    stroke-width: 1 !important;
+}
+
+.dropdownToggle svg {
+    margin-left: 12px; /* Adjust the margin as needed */
 }

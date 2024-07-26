@@ -18,17 +18,17 @@ const WildlifeDefault = 'All Species';
 const keyColor = {
     'Dairy Farms': '#519a8f',
     'Poultry Farms': '#7653a5',
+    'Human': '#f7c242',
     'Wild Birds': '#fc573e',
     'Wildlife': '#8fa429',
-    'Human': '#f7c242',
 };
 
 const keyType = {
     'Dairy Farms': 'state',
     'Poultry Farms': 'county',
+    'Human': 'point',
     'Wild Birds': 'county',
     'Wildlife': 'county',
-    'Human': 'point',
 };
 
 function getDairyData(allData) {
@@ -126,6 +126,18 @@ function dataIngest(data) {
             maxes['All Cases'] = allmax;
         }
     }
+
+    // sort legend options according to keyColor order
+    legendOptions.sort((a, b) => {
+        return Object.keys(keyColor).indexOf(a) - Object.keys(keyColor).indexOf(b);
+    });
+
+    // sort wildlife options by max value
+    wildlifeOptions.sort((a, b) => {
+        return maxes[b] - maxes[a];
+    });
+
+
     return [maxes, legendOptions, wildlifeOptions];
 }
 
@@ -136,7 +148,7 @@ export default function Container() {
     // data ingest takes some time so show a loading overlay
     const [loading, setLoading] = React.useState(true);
     const [Maxes, LegendOptions, WildlifeOptions] = dataIngest(allData);
-    
+
     // default selected values, can be selected via key
     const [selectedLegend, setSelectedLegend] = React.useState(LegendOptions[0]);
     const [selectedWildlife, setSelectedWildlife] = React.useState(WildlifeOptions[0]);
@@ -148,18 +160,18 @@ export default function Container() {
         <div className={styles.container}>
             <LoadingOverlay loading={loading} />
             <div className={styles.bg}>
-                <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} color={ selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} max={max} dairyData={getDairyData(allData)} />
+                <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} color={selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} max={max} dairyData={getDairyData(allData)} />
             </div>
             <div className={styles.fg}>
                 <Title />
-                <Key max={ max } keyColor={ selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} keyType={ selectedLegend == 'All Cases' ? keyType : keyType[selectedLegend]} 
-                    selected={ selectedLegend == 'All Cases' ?  // if selectedLegend is 'All Cases' then show all the options
-                        LegendOptions : 
-                            selectedLegend == 'Wildlife' ? // if we have selected wildlife, do more filtering
-                                selectedWildlife == WildlifeOptions[0] ? // if we have selected 'All Species' then show aggregated wildlife
-                                    'Wildlife' : // aggregated wildlife
-                                        selectedWildlife : // specific wildlife
-                                            selectedLegend} // just the normal legend 
+                <Key max={max} keyColor={selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} keyType={selectedLegend == 'All Cases' ? keyType : keyType[selectedLegend]}
+                    selected={selectedLegend == 'All Cases' ?  // if selectedLegend is 'All Cases' then show all the options
+                        LegendOptions :
+                        selectedLegend == 'Wildlife' ? // if we have selected wildlife, do more filtering
+                            selectedWildlife == WildlifeOptions[0] ? // if we have selected 'All Species' then show aggregated wildlife
+                                'Wildlife' : // aggregated wildlife
+                                selectedWildlife : // specific wildlife
+                            selectedLegend} // just the normal legend 
                 />
                 <Selector setSelectedLegend={setSelectedLegend} selectedLegend={selectedLegend} setSelectedWildlife={setSelectedWildlife} selectedWildlife={selectedWildlife} LegendOptions={LegendOptions} WildlifeOptions={WildlifeOptions} />
             </div>
