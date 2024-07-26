@@ -2,8 +2,12 @@
     position: absolute; /* pinned to the right of the screen */
     right: 0;
     top: 0;
-    margin-top: 4.5%;
+    margin-top: 3.5%;
     margin-right: 2%;
+    margin-bottom: 20vh;
+    margin-left: 60vw;
+    font-family: IBM Plex Mono;
+    text-align: center;
 }
 
 .active {
@@ -11,17 +15,23 @@
     color: white;
 }
 
+
 .inactive {
-    background-color: white;
+    background-color: transparent;
     color: #0c0a10;
 }
 
+.inactive * {
+    background-color: white;
+}
+
+
 .active svg * {
-    stroke: white;
+    stroke: white !important;
 }
 
 .inactive svg * {
-    stroke: #0c0a10;
+    stroke: #0c0a10 !important;
 }
 
 .selector svg {
@@ -33,27 +43,57 @@
     height: 5vw;
 }
 
-.selector ul {
-    margin: 0;
-    padding: 0;
+.selector {
     list-style-type: none;
+    border-radius: 9px;
+    transition: transform 0.5s;
 }
 
 .selector li {
-    margin: 0;
-    padding: 0;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
     cursor: pointer;
+    padding: 5px;
 }
 
-.selectorItem {
-    border: none;
-    border-radius: 0;
+.selector li h3 {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.divider {
-    border-top: 1px solid #0c0a10;
-    margin: 0 10%;
+.selector li svg {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    transform: translateX(4px);
+}
+
+.dairyTransform {
+    transform: translateX(-5px) !important;
+}
+
+.poultryTransform {
+    transform: translateX(-7px) !important;
+}
+
+.humanTransform {
+    transform: translateX(8px) !important;
+}
+
+
+@media (max-height: 500px) {
+    /* convert to a horizontal list */
+
+    .selector {
+        display: flex;
+    }
+
+    .poultryTransform {
+        transform: translateX(3px) !important;
+    }
+
+    .humanTransform {
+        transform: translateX(0px) !important;
+    }
+
+
 }

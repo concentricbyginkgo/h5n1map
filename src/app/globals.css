@@ -67,6 +67,13 @@ a {
   padding-bottom: calc(max(0.7%, 10px));
 }
 
+.dynaMargin {
+  margin-left: calc(max(1.5%, 20px));
+  margin-right: calc(max(1.5%, 20px));
+  margin-top: calc(max(0.7%, 10px));
+  margin-bottom: calc(max(0.7%, 10px));
+}
+
 .fontL {
   font-size: .9rem;
 }
