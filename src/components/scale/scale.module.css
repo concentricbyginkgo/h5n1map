@@ -18,3 +18,12 @@
 .scaleKey {
     max-width: 375px;
 }
+
+.scaleKey h3 {
+    margin-top: 3px;    
+    margin-bottom: 6px;
+}
+
+.scaleKey h4 {
+    font-family: IBM Plex Mono;
+}

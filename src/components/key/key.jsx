@@ -7,7 +7,7 @@ export default function Key(props) {
     // console.log(props);
 
     return (
-        <div className={styles.key + ' borderBox'}>
+        <div className={styles.key + ' borderBox dynaPad fontL'}>
             { typeof props.keyColor === 'string' && props.selected != 'Human' ?
                 <h3>{props.selected}</h3> :
                 null

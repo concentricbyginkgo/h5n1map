@@ -14,10 +14,10 @@ export default function Scale( { color, max, stateCounty = 'county' } ) {
     const halfwhite = `#${wr.toString(16).padStart(2, '0')}${wg.toString(16).padStart(2, '0')}${wb.toString(16).padStart(2, '0')}`;
     
     return (
-        <div className={styles.scaleKey}>
+        <div className={styles.scaleKey + ' fontS'}>
             <h3>Number of positive cases by { stateCounty } </h3>
             <div className={styles.gradient} style={{ background: `linear-gradient(to right, ${halfwhite}, ${color})` }}></div> 
-            <h3 className={styles.min}>1</h3><h3 className={styles.max}>{max}</h3>            
+            <h4 className={styles.min}>0</h4><h4 className={styles.max}>{max}</h4>            
         </div>
     );
 }

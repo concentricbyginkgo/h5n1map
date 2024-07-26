@@ -48,6 +48,11 @@
     cursor: pointer;
 }
 
+.selectorItem {
+    border: none;
+    border-radius: 0;
+}
+
 .divider {
     border-top: 1px solid #0c0a10;
     margin: 0 10%;

@@ -6,7 +6,12 @@
     margin-left: 2%;
     font-family: 'Aktive Grotesk', 'sans-serif';
     font-weight: 500;
-    font-size: 1rem;
-    padding-left: 25px;
-    padding-right: 25px;
+    margin-right: 50vw;
+}
+
+/* hide if width OR height are small */
+@media (max-width: 500px), (max-height: 400px) {
+    .title {
+        display: none;
+    }
 }

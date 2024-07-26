@@ -30,6 +30,7 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  transition: font-size 0.1s ease;
 }
 
 html, body {
@@ -55,7 +56,68 @@ a {
 
 .borderBox {
   border: 2px solid #0c0a10;
-  border-radius: 16px;
+  border-radius: 9px;
   background-color: white;
-  padding: 18px;
+}
+
+.dynaPad {  
+  padding-left: calc(max(1.5%, 20px));
+  padding-right: calc(max(1.5%, 20px));
+  padding-top: calc(max(0.7%, 10px));
+  padding-bottom: calc(max(0.7%, 10px));
+}
+
+.fontL {
+  font-size: .9rem;
+}
+
+.fontM {
+  font-size: .8rem;
+}
+
+.fontS {
+  font-size: .7rem;
+}
+
+/* dynamic font size */
+@media (max-width: 1000px), (max-height: 800px) {
+  .fontL {
+      font-size: .8rem;
+  }
+
+  .fontM {
+      font-size: .7rem;
+  }
+
+  .fontS {
+      font-size: .6rem;
+  }
+}
+
+@media (max-width: 800px), (max-height: 600px) {
+  .fontL {
+      font-size: .7rem;
+  }
+
+  .fontM {
+      font-size: .6rem;
+  }
+
+  .fontS {
+      font-size: .5rem;
+  }
+}
+
+@media (max-width: 600px), (max-height: 400px) {
+  .fontL {
+      font-size: .6rem;
+  }
+
+  .fontM {
+      font-size: .5rem;
+  }
+
+  .fontS {
+      font-size: .4rem;
+  }
 }

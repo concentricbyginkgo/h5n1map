@@ -6,9 +6,7 @@
     margin-left: 2%;
     font-family: 'Aktive Grotesk', 'sans-serif';
     font-weight: 500;
-    font-size: 1rem;
-    padding-left: 25px;
-    padding-right: 25px;
+    margin-right: 40vw;
 }
 
 .key ul {
@@ -17,4 +15,10 @@
 
 .key ul li {
     margin-bottom: 5px;
+    vertical-align: middle;
+}
+
+.key ul li div {
+    align-items: center;
+    display: flex;
 }

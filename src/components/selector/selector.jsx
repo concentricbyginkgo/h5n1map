@@ -74,7 +74,7 @@ const icons = {
                 fill="none" stroke="#000" />
             <path d="M21.69,14.07a3.19,3.19,0,0,0,5.9,1.68" fill="none" stroke="#000" />
             <path d="M30.11,6.51h1.3a1,1,0,0,1,1,1V14" fill="none" stroke="#000"
-                stroke-miterlimit="10" />
+                strokeMiterlimit="10" />
         </svg>
     ),
     'Wild Birds': (
@@ -123,7 +123,7 @@ export default function Selector(props) {
             <ul>
                 {props.LegendOptions.map((option, index) => {
                     return (
-                        <div key={index}>
+                        <div key={index} className={styles.selectorItem}>
                             <li key={index}
                                 onClick={() => props.setSelectedLegend(option)}
                                 className={option === props.selectedLegend ? styles.active : styles.inactive}>
