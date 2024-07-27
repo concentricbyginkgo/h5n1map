@@ -90,9 +90,9 @@ function addEventListenersToID(id, cData, setTooltip, parentRef) {
         overlay.addEventListener('mousemove', hoverListener);
         overlay.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '', x: 0, y: 0 }));
         overlay.addEventListener('click', () => {
-            console.log(`Clicked on ${cData.name}`);
+            //console.log(`Clicked on ${cData.name}`);
             console.log(pretty(cData));
-            console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
+            //console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
             console.log(cData);
         });
     }
@@ -273,6 +273,34 @@ function wildlifeColoringC(wildlife) { // constructor for wildlife coloring
     }
 }
 
+function getStateCases(dada, dairyData, sl) {
+    // if (sl != 'Dairy Farms') {
+    //     return 0;
+    // }
+    var stateAbbrev = null; 
+    for (let key of Object.keys(dada)) {
+        // if this key has any elements in its list
+        if (dada[key].length > 0) {
+            // get the first element in the list
+            let first = dada[key][0];
+            // split the first element by commas
+            let split = first.split(',');
+            // get the state abbreviation
+            stateAbbrev = split[split.length - 2];
+            break;
+        }
+    }
+    if (stateAbbrev == null) {
+        return 0;
+    }
+
+    if (stateAbbrev in dairyData) {
+        return dairyData[stateAbbrev];
+    } else {
+        return 0;
+    }
+}
+
 export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}
     const [tooltip, setTooltip] = useState({ visible: false, name: '', x: 0, y: 0 });
     const svgRef = useRef(null);
@@ -407,7 +435,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
             .scaleExtent([1, 8])
             .on('zoom', (event) => {
                 g.attr('transform', event.transform);
-                setTooltip({...tooltip, visible: false});
+                setTooltip({ ...tooltip, visible: false });
             });
 
         svg.call(zoom);
@@ -432,8 +460,6 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         }
         return style;
     }
-
-    console.log(props.dairyData);
 
     return (
         <div ref={parentRef} className={styles.mapContainer}>
@@ -19088,7 +19114,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                     </g>
                 </g>
             </svg>
-            {tooltip.visible && (<Tooltip {...{ x: tooltip.x, y: tooltip.y, info: tooltip.data, name: tooltip.name }} />)}
+            {tooltip.visible && (<Tooltip {...{ x: tooltip.x, y: tooltip.y, info: tooltip.data, name: tooltip.name, stateCases: getStateCases(tooltip.data, props.dairyData, props.selectedLegend) }} />)}
         </div>
     );
 }

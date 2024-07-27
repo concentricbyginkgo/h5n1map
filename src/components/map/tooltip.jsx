@@ -44,7 +44,7 @@ function textD(info) {
 
 }
 
-function renderTextComponent([name, sourcd, formattedEarliestDate, formattedLatestDate]) {
+function renderTextComponent([name, sourcd, formattedEarliestDate, formattedLatestDate], stateCases) {
     
     return (
         <div style={{ zIndex: 99999999999, whiteSpace: 'nowrap' }}>
@@ -53,6 +53,7 @@ function renderTextComponent([name, sourcd, formattedEarliestDate, formattedLate
                 {Object.keys(sourcd).map((source) => (
                     <li key={source}>{source}: <b>{sourcd[source]} Cases</b></li>
                 ))}
+                { stateCases > 0 ? <li>{name.split(',')[1].trim()} Dairy: <b>{stateCases} Cases</b></li> : null }
             </ul>
             <p style={{ fontSize: '0.7em' }}>{formattedEarliestDate} - {formattedLatestDate}</p>
         </div>
@@ -124,7 +125,6 @@ export default function Tooltip(props) {
         width += over;
     }
 
-
     return (
         <div className={styles.tooltip} style={{ left: props.x + 'px', top: props.y + 'px', width: width + 'px', height: height + 'px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 278.9 140.52`} style={{ zIndex: 1, position: 'absolute', width: '100%', height: '100%' }}>
@@ -133,7 +133,7 @@ export default function Tooltip(props) {
                     fill="#fff" stroke="#0c0a10" strokeWidth="0.5" />
             </svg>
             <div className={styles.textContent} style={{ zIndex: 2, position: 'absolute', transform: 'translate(30px, -50%)' }}>
-                {renderTextComponent(tooltipInfo)}
+                {renderTextComponent(tooltipInfo, props.stateCases)}
             </div>
         </div>
     );
