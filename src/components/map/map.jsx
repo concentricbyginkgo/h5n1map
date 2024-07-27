@@ -7,7 +7,9 @@ import { select } from 'd3-selection';
 // import data from '../../../public/data/combined_h5n1_animal_surveillance_data.csv';
 import states from '../../../public/data/states.csv';
 import styles from './map.module.css';
+
 import Tooltip from './tooltip';
+import Dot from '../dot/dot';
 
 function setTopIndex(element) {
     const stopElement = 'countiesOverlay';
@@ -63,6 +65,18 @@ function hoverListenerConstructor(cData, setTooltip, parentRef, overlay) {
             data: cData,
             x: event.clientX - parentRect.left,
             y: event.clientY - parentRect.top
+        });
+    };
+}
+
+function circleListenerConstructor(cData, setTooltip, parentRef, overlay) {
+    return function (event) {
+        setTooltip({
+            visible: true,
+            name: pretty(cData),
+            data: cData,
+            x: event.clientX,
+            y: event.clientY
         });
     };
 }
@@ -262,6 +276,7 @@ function wildlifeColoringC(wildlife) { // constructor for wildlife coloring
 export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}
     const [tooltip, setTooltip] = useState({ visible: false, name: '', x: 0, y: 0 });
     const svgRef = useRef(null);
+    const dotRef = useRef(null);
     const gRef = useRef(null);
     const parentRef = useRef(null);
 
@@ -278,19 +293,26 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         } else if (props.selectedLegend == 'All Cases' && offFix != 'All Cases') {
             resetFix();
             setoffFix('All Cases');
+        } else if (offFix == 'Human' && props.selectedLegend != 'Human') {
+            resetFix();
+            setoffFix(props.selectedLegend);
         }
 
         setSelectedMain(props.selectedLegend);
         if (props.selectedLegend == 'All Cases') {
             setoffFix('All Cases');
             setFillsTo(allColoringC(), props.allData, props.max, props.color);
-        } else if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Dairy Farms') {
+        } else if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Dairy Farms' && props.selectedLegend != 'Human') {
             setFillsTo(countyColoringC(props.selectedLegend), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Dairy Farms') { // this is different because dairy data is state level instead of county level
             setoffFix('Dairy Farms');
             setFillsTo(stateColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Wildlife') { // this is similar, but we need to check the sub legend
             setFillsTo(wildlifeColoringC(props.selectedWildlife), props.allData, props.max, props.color);
+        } else if (props.selectedLegend == 'Human') {
+            //reset fills to base color and draw dots
+            resetFix();
+            setoffFix('Human');
         }
     }, [props.selectedLegend]);
 
@@ -337,8 +359,41 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
             setGradients(actualyMadeGradients);
 
+
             if (document.getElementById(countyCode)) {
                 addEventListenersToID(countyCode, datum, setTooltip, parentRef);
+
+                if (datum['Human'].length > 0 && dotRef.current) {
+
+                    const bbox = document.getElementById(countyCode).getBBox();
+                    const x = bbox.x + bbox.width / 2;
+                    const y = bbox.y + bbox.height / 2;
+
+                    const namespaceURI = "http://www.w3.org/2000/svg";
+                    const circle = document.createElementNS(namespaceURI, "circle");
+                    circle.setAttribute("cx", x);
+                    circle.setAttribute("cy", y);
+                    circle.setAttribute("r", 12);
+                    circle.setAttribute("stroke", "black");
+                    circle.setAttribute("stroke-width", 2);
+                    circle.setAttribute("fill", props.color['Human']);
+                    circle.setAttribute("id", countyCode + 'dot');
+                    circle.setAttribute("key", countyCode + 'dot');
+
+
+                    const hoverListener = circleListenerConstructor(datum, setTooltip, parentRef, circle);
+                    circle.addEventListener('mousemove', hoverListener);
+                    circle.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '', x: 0, y: 0 }));
+                    circle.addEventListener('click', () => {
+                        console.log(`Clicked on ${cData.name}`);
+                        console.log(pretty(datum));
+                        console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
+                        console.log(datum);
+                    });
+
+                    dotRef.current.appendChild(circle);
+                }
+
             }
         }
         props.setLoading(false);
@@ -365,7 +420,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
     function getStyle() {
         let style = '';
-        
+
         if (selectedMain != 'All Cases') {
             return style;
         }
@@ -383,7 +438,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                     {
                         gradients.map((gradient) => (
                             <linearGradient key={gradient.id} id={gradient.id} x1="0" x2="0" y1="50" y2="100" gradientUnits='userSpaceOnUse'>
-                                {   
+                                {
                                     gradient.stops.map((stop, i) => (
                                         <stop key={i} offset={stop.offset} className={stop.name} stopColor={stop.color} />
                                     ))
@@ -391,13 +446,13 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                             </linearGradient>
                         ))
                     }
-                    { gradients.map((gradient) => (
-                            <linearGradient id={'repeat' + gradient.id} x1="0" x2="6px" y1="0" y2="6px" xlinkHref={'#' + gradient.id} spreadMethod="repeat" key={'repeat' + gradient.id} gradientUnits='userSpaceOnUse' />
-                        ))
+                    {gradients.map((gradient) => (
+                        <linearGradient id={'repeat' + gradient.id} x1="0" x2="6px" y1="0" y2="6px" xlinkHref={'#' + gradient.id} spreadMethod="repeat" key={'repeat' + gradient.id} gradientUnits='userSpaceOnUse' />
+                    ))
                     }
                 </defs>
                 <style>
-                    { getStyle() }
+                    {getStyle()}
                 </style>
                 <g ref={gRef} id="Layer_2" data-name="Layer 2">
                     <g id="Layer_5" data-name="Layer 5">
@@ -19023,6 +19078,8 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1311.26,392.15l1.5-2.43,1.39.72,3,1.83-2.78,4.39-.2-1.74-.72-1.4-1.22-.54-1-.83"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
+                        </g>
+                        <g id="dots" className={styles.dotsC} style={{ display: props.selectedLegend == 'Human' ? 'block' : 'none' }} ref={dotRef}>
                         </g>
                     </g>
                 </g>

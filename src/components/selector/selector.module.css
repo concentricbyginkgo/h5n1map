@@ -72,7 +72,7 @@
 }
 
 .poultryTransform {
-    transform: translateX(-7px) !important;
+    transform: translateX(7px) !important;
 }
 
 .humanTransform {

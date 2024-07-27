@@ -39,3 +39,7 @@
     stroke-width: .3;
     z-index: 1 !important;
 }
+
+.dotsC {
+    z-index: 2;
+}
