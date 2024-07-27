@@ -22,3 +22,12 @@
     align-items: center;
     display: flex;
 }
+
+/* fix for ios 100vh issue */
+@supports (-webkit-touch-callout: none) {
+
+    .key {
+        margin-bottom: calc(3% + 25px);
+    }
+}
+  

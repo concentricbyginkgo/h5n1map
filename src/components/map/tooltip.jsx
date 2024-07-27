@@ -1,5 +1,3 @@
-'use client';
-import React, { useEffect, useRef } from 'react';
 import styles from './tooltip.module.css';
 
 function textD(info) {
@@ -53,7 +51,7 @@ function renderTextComponent([name, sourcd, formattedEarliestDate, formattedLate
             <h3>{name}</h3>
             <ul>
                 {Object.keys(sourcd).map((source) => (
-                    <li key={source}>{source}: {sourcd[source]}</li>
+                    <li key={source}>{source}: <b>{sourcd[source]} Cases</b></li>
                 ))}
             </ul>
             <p style={{ fontSize: '0.7em' }}>{formattedEarliestDate} - {formattedLatestDate}</p>

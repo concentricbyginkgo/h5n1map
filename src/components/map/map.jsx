@@ -407,6 +407,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
             .scaleExtent([1, 8])
             .on('zoom', (event) => {
                 g.attr('transform', event.transform);
+                setTooltip({...tooltip, visible: false});
             });
 
         svg.call(zoom);
@@ -416,6 +417,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         svg.on('dblclick', () => {
             svg.transition().duration(750).call(zoom.transform, zoomIdentity);
         });
+
     }, []);
 
     function getStyle() {

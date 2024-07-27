@@ -6,6 +6,7 @@
     z-index: 99999;
     /* respect newlines */
     white-space: pre-wrap;
+    font-family: 'Aktive Grotesk', 'sans-serif';
 }
 
 .tooltip.visible {
@@ -37,4 +38,8 @@
     list-style: none;
     padding: 0;
     margin: 0;
+}
+
+.tooltip h3 {
+    margin-bottom: .25rem;
 }
