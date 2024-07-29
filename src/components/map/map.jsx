@@ -8,7 +8,7 @@ import { select } from 'd3-selection';
 import states from '../../../public/data/states.csv';
 import styles from './map.module.css';
 
-import Tooltip from './tooltip';
+import { Tooltip, STooltip } from './tooltip';
 import Dot from '../dot/dot';
 
 function setTopIndex(element) {
@@ -87,7 +87,7 @@ function addEventListenersToID(id, cData, setTooltip, parentRef) {
     const overlay = document.getElementById(id.replace('c', 'b'));
     if (element && overlay) {
         const hoverListener = hoverListenerConstructor(cData, setTooltip, parentRef, overlay);
-        overlay.addEventListener('mousemove', hoverListener);
+        overlay.addEventListener('mouseenter', hoverListener);
         overlay.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '', x: 0, y: 0 }));
         overlay.addEventListener('click', () => {
             //console.log(`Clicked on ${cData.name}`);
@@ -194,6 +194,10 @@ function stateColoringC(dairyD, maxD) { // constructor for state coloring
                     for (let child of document.getElementById(statename).children) {
                         child.setAttribute('fill', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
                         child.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
+                        // get the overlay by the id of the child
+                        let overlay = document.getElementById(child.id.replace('c', 'b'));
+                        overlay.setAttribute('fill', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
+                        overlay.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
                     }
                 }
             }
@@ -273,11 +277,12 @@ function wildlifeColoringC(wildlife) { // constructor for wildlife coloring
     }
 }
 
-function getStateCases(dada, dairyData, sl) {
+function getStateCases(dada, dairyData) {
     // if (sl != 'Dairy Farms') {
     //     return 0;
     // }
-    var stateAbbrev = null; 
+
+    var stateAbbrev = null;
     for (let key of Object.keys(dada)) {
         // if this key has any elements in its list
         if (dada[key].length > 0) {
@@ -301,21 +306,86 @@ function getStateCases(dada, dairyData, sl) {
     }
 }
 
+
+function getStateCasesFromName(name, dairyData) {
+    var stateAbbrev = null;
+    for (let stateI of states) {
+        if (stateI.state == name) {
+            stateAbbrev = stateI.abbreviation;
+            break;
+        }
+    }
+    if (stateAbbrev == null) {
+        return 0;
+    } else {
+        if (stateAbbrev in dairyData) {
+            return dairyData[stateAbbrev];
+        } else {
+            return 0;
+        }
+    }
+}
+
+function stateMouseEnter(setTooltip) {
+    return function (event) {
+        for (let child of event.target.children) {
+            child.style.opacity = 1;
+        }
+        event.target.style.filter = 'url(#outline)';
+        setTooltip({
+            visible: true,
+            name: event.target.id,
+            x: event.clientX,
+            y: event.clientY
+        });
+    };
+}
+
+function stateMouseLeave(setTooltip) {
+    return function (event) {
+        for (let child of event.target.children) {
+            child.style.opacity = 0.5;
+        }
+        event.target.style.filter = 'none';
+        setTooltip({ visible: false, name: '', x: 0, y: 0 });
+    };
+}
+
+function addStateEventListeners(setTooltip) {
+    for (let stateG of document.getElementById('countiesOverlay').children) {
+        stateG.classList.add('disableChildPointerEvents');
+        stateG.addEventListener('mouseenter', stateMouseEnter(setTooltip));
+        stateG.addEventListener('mouseleave', stateMouseLeave(setTooltip));
+    }
+}
+
+function removeStateEventListeners() {
+    for (let stateG of document.getElementById('countiesOverlay').children) {
+        stateG.classList.remove('disableChildPointerEvents');
+        stateG.removeEventListener('mouseenter', stateMouseEnter);
+        stateG.removeEventListener('mouseleave', stateMouseLeave);
+    }
+}
+
+
 export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}
     const [tooltip, setTooltip] = useState({ visible: false, name: '', x: 0, y: 0 });
+    const [sTooltip, setSTooltip] = useState({ visible: false, name: '', x: 0, y: 0 });
     const svgRef = useRef(null);
     const dotRef = useRef(null);
     const gRef = useRef(null);
     const parentRef = useRef(null);
 
-    const [selectedMain, setSelectedMain] = useState('All Cases');
-    const [selectedSub, setSelectedSub] = useState('All Species');
+    const selectedLegendRef = useRef(props.selectedLegend);
+    const selectedWildlifeRef = useRef(props.selectedWildlife);
+
     const [offFix, setoffFix] = useState('All Cases');
 
     const [gradients, setGradients] = useState([]);
 
     useEffect(() => { // listens for changes in main legend, wildlife and dairy farms are special cases
         if (offFix == 'Dairy Farms' && props.selectedLegend != 'Dairy Farms') {
+            removeStateEventListeners();
             resetFix();
             setoffFix(props.selectedLegend);
         } else if (props.selectedLegend == 'All Cases' && offFix != 'All Cases') {
@@ -325,14 +395,13 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
             resetFix();
             setoffFix(props.selectedLegend);
         }
-
-        setSelectedMain(props.selectedLegend);
         if (props.selectedLegend == 'All Cases') {
             setoffFix('All Cases');
             setFillsTo(allColoringC(), props.allData, props.max, props.color);
         } else if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Dairy Farms' && props.selectedLegend != 'Human') {
             setFillsTo(countyColoringC(props.selectedLegend), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Dairy Farms') { // this is different because dairy data is state level instead of county level
+            addStateEventListeners(setSTooltip);
             setoffFix('Dairy Farms');
             setFillsTo(stateColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Wildlife') { // this is similar, but we need to check the sub legend
@@ -345,7 +414,6 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
     }, [props.selectedLegend]);
 
     useEffect(() => { // listens for changes in wildlife sub legend
-        setSelectedSub(props.selectedWildlife);
         if (props.selectedLegend == 'Wildlife') {
             setFillsTo(wildlifeColoringC(props.selectedWildlife), props.allData, props.max, props.color);
         }
@@ -410,7 +478,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
 
                     const hoverListener = circleListenerConstructor(datum, setTooltip, parentRef, circle);
-                    circle.addEventListener('mousemove', hoverListener);
+                    circle.addEventListener('mouseenter', hoverListener);
                     circle.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '', x: 0, y: 0 }));
                     circle.addEventListener('click', () => {
                         console.log(`Clicked on ${cData.name}`);
@@ -421,9 +489,9 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
                     dotRef.current.appendChild(circle);
                 }
-
             }
         }
+
         props.setLoading(false);
     }, []);
 
@@ -451,7 +519,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
     function getStyle() {
         let style = '';
 
-        if (selectedMain != 'All Cases') {
+        if (props.selectedLegend == 'All Cases') {
             return style;
         }
 
@@ -480,6 +548,15 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                         <linearGradient id={'repeat' + gradient.id} x1="0" x2="6px" y1="0" y2="6px" xlinkHref={'#' + gradient.id} spreadMethod="repeat" key={'repeat' + gradient.id} gradientUnits='userSpaceOnUse' />
                     ))
                     }
+                    <filter id="outline" height="130%" width="130%" x="-15%" y="-15%">
+                        <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="dilated" />
+                        <feFlood floodColor="black" result="flooded" />
+                        <feComposite in="flooded" in2="dilated" operator="in" result="outline" />
+                        <feMerge>
+                            <feMergeNode in="outline" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
                 </defs>
                 <style>
                     {getStyle()}
@@ -10364,7 +10441,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M301.68,592.86,296.1,623l-3,16.11-.49-.3-39.4-23.68,1-4.22.08-.13.26-.1.5.11,1.25-1.15,1.19-1.73,3.07.24,4.07-2.53,1.27-1.78.26-.9.28-2.3-.87-2-.09-.09-.08-.11,4.21.84,3,.5,2.94-15,8.87,1.67-.58,3,17.86,3.37"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="balifornia">
+                            <g id="California">
                                 <path className={styles.countyOverlay} id="b06015"
                                     d="M83.07,226.83l9.65,3,7.58,2.1-.84,1.39-1.15,1.5-1.77.17-2.49,2.21-2,9.17.23.81.24,2.26-.15.43-1.23,1.41-.67.47-1.43-.42L88,250l.54-1.81-2.87-.93-4.5-1.32.44-2.93.1-2,0-3.92v-.33l-.06-.42-.14-.45.61-5.77.89-3.3"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -10540,7 +10617,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M151.87,246.83l14.18,4,4.65,1.25h0l9.18,2.44,1,.25,7.23,1.83L181,284.24l-33.77-9-2.9-.77,2.29-8.36,3.19-11.83-.13-.07,0-.11,1.33-4.92.24-.85.68-1.54"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="bolorado">
+                            <g id="Colorado">
                                 <path className={styles.countyOverlay} id="b08083"
                                     d="M474.85,467.71l-1.2,1.06-2,5.08-4.3,3-.21.3L464.84,481l-3.69,6.66-.37,1-18.33-2.45,2.4-17,4.15-4.66,16.6,2.2,3.14.35,2.39.13,3.72.46"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -19114,7 +19191,8 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                     </g>
                 </g>
             </svg>
-            {tooltip.visible && (<Tooltip {...{ x: tooltip.x, y: tooltip.y, info: tooltip.data, name: tooltip.name, stateCases: getStateCases(tooltip.data, props.dairyData, props.selectedLegend) }} />)}
+            {(tooltip.visible && props.selectedLegend != 'Dairy Farms') && (<Tooltip {...{ x: tooltip.x, y: tooltip.y, info: tooltip.data, name: tooltip.name, stateCases: getStateCases(tooltip.data, props.dairyData) }} />)}
+            {(tooltip.visible && props.selectedLegend == 'Dairy Farms') && (<STooltip {...{ x: sTooltip.x, y: sTooltip.y, name: sTooltip.name, stateCases: getStateCasesFromName(sTooltip.name, props.dairyData) }} />)}
         </div>
     );
 }

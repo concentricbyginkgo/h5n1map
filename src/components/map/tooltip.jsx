@@ -44,6 +44,7 @@ function textD(info) {
 
 }
 
+
 function renderTextComponent([name, sourcd, formattedEarliestDate, formattedLatestDate], stateCases) {
     
     return (
@@ -106,7 +107,7 @@ function extractDate(earlyLate = true, dataarr) {
     }
 }
 
-export default function Tooltip(props) {
+export function Tooltip(props) {
 
     // get width and height for the tooltip
     const tooltipInfo = textD(props.info);
@@ -134,6 +135,28 @@ export default function Tooltip(props) {
             </svg>
             <div className={styles.textContent} style={{ zIndex: 2, position: 'absolute', transform: 'translate(30px, -50%)' }}>
                 {renderTextComponent(tooltipInfo, props.stateCases)}
+            </div>
+        </div>
+    );
+}
+
+export function STooltip(props) {
+    let width = 180;
+    let height = 110;
+    return (
+        <div className={styles.tooltip} style={{ left: props.x + 'px', top: props.y + 'px', width: width + 'px', height: height + 'px' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 278.9 140.52`} style={{ zIndex: 1, position: 'absolute', width: '100%', height: '100%' }}>
+                <path
+                    d="M268.31,140.52H25.45a10.68,10.68,0,0,1-10.59-10.77v-51a5.06,5.06,0,0,0-2.4-4.32L1.65,67.81a3,3,0,0,1,0-5l10.92-6.95a5.06,5.06,0,0,0,2.33-4.27V11A10.68,10.68,0,0,1,25.45.25H268.31A10.68,10.68,0,0,1,278.9,11V129.75A10.68,10.68,0,0,1,268.31,140.52Z"
+                    fill="#fff" stroke="#0c0a10" strokeWidth="0.5" />
+            </svg>
+            <div className={styles.textContent} style={{ zIndex: 2, position: 'absolute', transform: 'translate(30px, -50%)' }}>
+                <div style={{ zIndex: 99999999999, whiteSpace: 'nowrap' }}>
+                    <h3>{props.name.replace(/_/g, ' ')}</h3>
+                    <ul>
+                        <li>Dairy Farms: <b>{props.stateCases} Cases</b></li>
+                    </ul>
+                </div>
             </div>
         </div>
     );

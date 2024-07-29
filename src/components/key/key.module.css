@@ -31,3 +31,6 @@
     }
 }
   
+.disableCounties g * {
+    pointer-events: none;
+}

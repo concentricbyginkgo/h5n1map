@@ -43,3 +43,7 @@
 .dotsC {
     z-index: 2;
 }
+
+.disableChildPointerEvents {
+    pointer-events: none !important;
+}
