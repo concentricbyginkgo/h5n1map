@@ -62,9 +62,7 @@ function hoverListenerConstructor(cData, setTooltip, parentRef, overlay) {
         setTooltip({
             visible: true,
             name: pretty(cData),
-            data: cData,
-            x: event.clientX - parentRect.left,
-            y: event.clientY - parentRect.top
+            data: cData
         });
     };
 }
@@ -74,26 +72,27 @@ function circleListenerConstructor(cData, setTooltip, parentRef, overlay) {
         setTooltip({
             visible: true,
             name: pretty(cData),
-            data: cData,
-            x: event.clientX,
-            y: event.clientY
+            data: cData
         });
     };
 }
 
 
-function addEventListenersToID(id, cData, setTooltip, parentRef) {
+function addEventListenersToID(id, cData, setTooltip, parentRef, setPos) {
     const element = document.getElementById(id);
     const overlay = document.getElementById(id.replace('c', 'b'));
     if (element && overlay) {
         const hoverListener = hoverListenerConstructor(cData, setTooltip, parentRef, overlay);
         overlay.addEventListener('mouseenter', hoverListener);
-        overlay.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '', x: 0, y: 0 }));
+        overlay.addEventListener('mouseleave', () => setTooltip({ visible: false, name: ''}));
         overlay.addEventListener('click', () => {
             //console.log(`Clicked on ${cData.name}`);
             console.log(pretty(cData));
             //console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
             console.log(cData);
+        });
+        overlay.addEventListener('mousemove', (event) => {
+            setPos({ x: event.clientX, y: event.clientY });
         });
     }
 }
@@ -309,6 +308,7 @@ function getStateCases(dada, dairyData) {
 
 function getStateCasesFromName(name, dairyData) {
     var stateAbbrev = null;
+    name = name.replace('_', ' ');
     for (let stateI of states) {
         if (stateI.state == name) {
             stateAbbrev = stateI.abbreviation;
@@ -326,51 +326,29 @@ function getStateCasesFromName(name, dairyData) {
     }
 }
 
-function stateMouseEnter(setTooltip) {
-    return function (event) {
-        for (let child of event.target.children) {
-            child.style.opacity = 1;
-        }
-        event.target.style.filter = 'url(#outline)';
-        setTooltip({
-            visible: true,
-            name: event.target.id,
-            x: event.clientX,
-            y: event.clientY
-        });
-    };
-}
-
-function stateMouseLeave(setTooltip) {
-    return function (event) {
-        for (let child of event.target.children) {
-            child.style.opacity = 0.5;
-        }
-        event.target.style.filter = 'none';
-        setTooltip({ visible: false, name: '', x: 0, y: 0 });
-    };
-}
-
-function addStateEventListeners(setTooltip) {
+function addStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove) {
     for (let stateG of document.getElementById('countiesOverlay').children) {
         stateG.classList.add('disableChildPointerEvents');
-        stateG.addEventListener('mouseenter', stateMouseEnter(setTooltip));
-        stateG.addEventListener('mouseleave', stateMouseLeave(setTooltip));
+        stateG.addEventListener('mouseenter', stateMouseEnter);
+        stateG.addEventListener('mouseleave', stateMouseLeave);
+        stateG.addEventListener('mousemove', stateMouseMove);
     }
 }
 
-function removeStateEventListeners() {
+function removeStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove) {
     for (let stateG of document.getElementById('countiesOverlay').children) {
         stateG.classList.remove('disableChildPointerEvents');
         stateG.removeEventListener('mouseenter', stateMouseEnter);
         stateG.removeEventListener('mouseleave', stateMouseLeave);
+        stateG.removeEventListener('mousemove', stateMouseMove);
     }
 }
 
-
 export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}
-    const [tooltip, setTooltip] = useState({ visible: false, name: '', x: 0, y: 0 });
-    const [sTooltip, setSTooltip] = useState({ visible: false, name: '', x: 0, y: 0 });
+    const [tooltip, setTooltip] = useState({ visible: false, name: '' });
+    const [pos, setPos] = useState({ x: 0, y: 0 });
+    const [sTooltip, setSTooltip] = useState({ visible: false, name: ''});
+    const [sPos, setSPos] = useState({ x: 0, y: 0 });
     const svgRef = useRef(null);
     const dotRef = useRef(null);
     const gRef = useRef(null);
@@ -383,9 +361,33 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
     const [gradients, setGradients] = useState([]);
 
+    const stateMouseEnter = React.useCallback((event) => {
+            for (let child of event.target.children) {
+                child.style.opacity = 1;
+            }
+            event.target.style.filter = 'url(#outline)';
+            setSTooltip({
+                visible: true,
+                name: event.target.id
+            });
+        }, []);
+
+    const stateMouseLeave = React.useCallback((event) => {
+            for (let child of event.target.children) {
+                child.style.opacity = null;
+            }
+            event.target.style.filter = 'none';
+            setSTooltip({ visible: false, name: ''});
+        }, []);
+
+    const stateMouseMove = React.useCallback((event) => {
+            setSPos({ x: event.clientX, y: event.clientY });
+        }, []);
+
     useEffect(() => { // listens for changes in main legend, wildlife and dairy farms are special cases
         if (offFix == 'Dairy Farms' && props.selectedLegend != 'Dairy Farms') {
-            removeStateEventListeners();
+            removeStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove);
+            setSTooltip({ visible: false, name: '' });
             resetFix();
             setoffFix(props.selectedLegend);
         } else if (props.selectedLegend == 'All Cases' && offFix != 'All Cases') {
@@ -401,7 +403,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         } else if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Dairy Farms' && props.selectedLegend != 'Human') {
             setFillsTo(countyColoringC(props.selectedLegend), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Dairy Farms') { // this is different because dairy data is state level instead of county level
-            addStateEventListeners(setSTooltip);
+            addStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove);
             setoffFix('Dairy Farms');
             setFillsTo(stateColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Wildlife') { // this is similar, but we need to check the sub legend
@@ -457,7 +459,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
 
             if (document.getElementById(countyCode)) {
-                addEventListenersToID(countyCode, datum, setTooltip, parentRef);
+                addEventListenersToID(countyCode, datum, setTooltip, parentRef, setPos);
 
                 if (datum['Human'].length > 0 && dotRef.current) {
 
@@ -479,7 +481,10 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
                     const hoverListener = circleListenerConstructor(datum, setTooltip, parentRef, circle);
                     circle.addEventListener('mouseenter', hoverListener);
-                    circle.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '', x: 0, y: 0 }));
+                    circle.addEventListener('mouseleave', () => setTooltip({ visible: false, name: ''}));
+                    circle.addEventListener('mousemove', (event) => {
+                        setPos({ x: event.clientX, y: event.clientY });
+                    });                    
                     circle.addEventListener('click', () => {
                         console.log(`Clicked on ${cData.name}`);
                         console.log(pretty(datum));
@@ -563,7 +568,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                 </style>
                 <g ref={gRef} id="Layer_2" data-name="Layer 2">
                     <g id="Layer_5" data-name="Layer 5">
-                        <g id="counties" style={{ transition: 'opacity 0.5s', opacity: tooltip.visible ? 0.5 : 1 }}>
+                        <g id="counties" style={{ transition: 'opacity 0.5s', opacity: tooltip.visible || sTooltip.visible ? 0.5 : 1 }}>
                             <g id="Alaska">
                                 <path className={styles.county} id="c02185"
                                     d="M164,695.06l2.39-2.4,1.79-1.19.6,1.19-1.19.6h1.19l6-1.79,5.38-6.59,4.79,2.4v1.2l-1.8,1.79v1.8l1.8-.6,1.2-3,1.19-1.2,1.8,1.79.6,2.4,1.79.6.6-1.2,3-.6h4.79l.59.6-1.19,1.79v.6l3.59.6-.6,1.79h2.39l3-1.79,6.58-.6,4.19,1.2h1.8l1.79.6.6.59H225l3-.59h3.59l4.19,1.2,1.2-.61,2.39-1.79.6-.6,1.2-1.19,4.19.59,9.57,3,3,9.58,1.8,6-24.54,6,1.2,6.58-4.79,1.2-12.57,2.4h-.6l-28.12,3h-6.59v-1.2H179V728h-4.79l-4.79.6h-3.59v-1.19H164V728h-5.39l-1.2-.59h-.6V728h-2.39l-.6-1.19h-3V728h-1.2l-8.38-.59v2.39h-4.19l-3.59-1.8-1.8-2.39,1.2-3.59.6-4.19,4.19.6,5.39-.6,1.79-.6,3.59-4.19,1.8-5.38,3.59-5.39,2.39-2.4,1.8.61,2.39-1.2,3.6-4.19"
@@ -19191,8 +19196,8 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                     </g>
                 </g>
             </svg>
-            {(tooltip.visible && props.selectedLegend != 'Dairy Farms') && (<Tooltip {...{ x: tooltip.x, y: tooltip.y, info: tooltip.data, name: tooltip.name, stateCases: getStateCases(tooltip.data, props.dairyData) }} />)}
-            {(tooltip.visible && props.selectedLegend == 'Dairy Farms') && (<STooltip {...{ x: sTooltip.x, y: sTooltip.y, name: sTooltip.name, stateCases: getStateCasesFromName(sTooltip.name, props.dairyData) }} />)}
+            {(tooltip.visible && props.selectedLegend != 'Dairy Farms') && (<Tooltip {...{ x: pos.x, y: pos.y, info: tooltip.data, name: tooltip.name, stateCases: getStateCases(tooltip.data, props.dairyData) }} />)}
+            {(sTooltip.visible && props.selectedLegend == 'Dairy Farms') && (<STooltip {...{ x: sPos.x, y: sPos.y, name: sTooltip.name, stateCases: getStateCasesFromName(sTooltip.name, props.dairyData) }} />)}
         </div>
     );
 }
