@@ -400,3 +400,27 @@ export function allOutlineFix(dairyData, stateM) {
         }
     }
 }
+
+export function tvis(tooltip, sel) {
+    if (tooltip.data == null) {
+        return false;
+    } else {
+        if (sel == "All Cases") {
+            return true && tooltip.visible && sel != 'Dairy Farms';
+        }
+        if (tooltip.data[sel] == null || tooltip.data[sel].length == 0) {
+            return false;
+        } else {
+            return true && tooltip.visible && sel != 'Dairy Farms'
+        }
+    }
+}
+
+export function svis(stooltip, tool, sel) {
+
+    if (stooltip.data == 0) {
+        return false;
+    }
+    let tvix = tvis(tool, sel);
+    return stooltip.visible && (sel == 'Dairy Farms' || (!tvix && sel == 'All Cases'))
+}

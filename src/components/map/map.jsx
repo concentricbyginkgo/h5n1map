@@ -36,14 +36,16 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         event.target.classList.add(styles.childOpacity);
         setSTooltip({
             visible: true,
-            name: event.target.id.replace('O_', ' ')
+            name: event.target.id.replace('O_', ' '),
+            data: utils.getStateCasesFromName(event.target.id.replace('O_', ' ').replace('_', ' ').trim(), props.dairyData)
         });
     }, []);
 
     const stateMouseEnterNoOpac = React.useCallback((event) => {
         setSTooltip({
             visible: true,
-            name: event.target.id.replace('O_', ' ')
+            name: event.target.id.replace('O_', ' '),
+            data: utils.getStateCasesFromName(event.target.id.replace('O_', ' ').replace('_', ' ').trim(), props.dairyData)
         });
         setStateOutlineState(event.target.id.replace('O_', ' ').replace('_', ' ').trim());
     }, []);
@@ -193,7 +195,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                         setPos({ x: event.clientX, y: event.clientY });
                     });
                     circle.addEventListener('click', () => {
-                        console.log(`Clicked on ${cData.name}`);
+                        console.log(`Clicked on ${datum.name}`);
                         console.log(pretty(datum));
                         console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
                         console.log(datum);
@@ -261,9 +263,9 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
     useEffect(() => {
         if (props.selectedLegend == 'All Cases') {
-            if (tooltip.visible) {
+            if (utils.tvis(tooltip, props.selectedLegend)) {
                 setStateOutlineState('')
-            } else if (sTooltip.visible) {
+            } else if (utils.svis(sTooltip, tooltip, props.selectedLegend)) {
                 setStateOutlineState(sTooltip.name.replace('_', ' ').trim());
             } else {
                 setStateOutlineState('All');
@@ -310,7 +312,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                     </style>
                     <g ref={gRef} id="Layer_2" data-name="Layer 2">
                         <g id="Layer_5" data-name="Layer 5">
-                            <g id="counties" style={{ transition: 'opacity 0.5s', opacity: tooltip.visible || sTooltip.visible ? 0.5 : 1 }}>
+                            <g id="counties" style={{ transition: 'opacity 0.5s', opacity: utils.tvis(tooltip, props.selectedLegend) || utils.svis(sTooltip, tooltip, props.selectedLegend) ? 0.5 : 1 }}>
                                 <g id="Alaska">
                                     <path className={styles.county} id="c02185"
                                         d="M164,695.06l2.39-2.4,1.79-1.19.6,1.19-1.19.6h1.19l6-1.79,5.38-6.59,4.79,2.4v1.2l-1.8,1.79v1.8l1.8-.6,1.2-3,1.19-1.2,1.8,1.79.6,2.4,1.79.6.6-1.2,3-.6h4.79l.59.6-1.19,1.79v.6l3.59.6-.6,1.79h2.39l3-1.79,6.58-.6,4.19,1.2h1.8l1.79.6.6.59H225l3-.59h3.59l4.19,1.2,1.2-.61,2.39-1.79.6-.6,1.2-1.19,4.19.59,9.57,3,3,9.58,1.8,6-24.54,6,1.2,6.58-4.79,1.2-12.57,2.4h-.6l-28.12,3h-6.59v-1.2H179V728h-4.79l-4.79.6h-3.59v-1.19H164V728h-5.39l-1.2-.59h-.6V728h-2.39l-.6-1.19h-3V728h-1.2l-8.38-.59v2.39h-4.19l-3.59-1.8-1.8-2.39,1.2-3.59.6-4.19,4.19.6,5.39-.6,1.79-.6,3.59-4.19,1.8-5.38,3.59-5.39,2.39-2.4,1.8.61,2.39-1.2,3.6-4.19"
@@ -18938,8 +18940,8 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                         </g>
                     </g>
                 </svg>
-                {(tooltip.visible && props.selectedLegend != 'Dairy Farms') && (<Tooltip {...{ x: pos.x, y: pos.y, info: tooltip.data, name: tooltip.name, stateCases: utils.getStateCases(tooltip.data, props.dairyData), selectedLegend: props.selectedLegend }} />)}
-                {(sTooltip.visible && (props.selectedLegend == 'Dairy Farms' || (!tooltip.visible && props.selectedLegend == 'All Cases'))) && (<STooltip {...{ x: sPos.x, y: sPos.y, name: sTooltip.name, stateCases: utils.getStateCasesFromName(sTooltip.name, props.dairyData) }} />)}
+                {utils.tvis(tooltip, props.selectedLegend) && (<Tooltip {...{ x: pos.x, y: pos.y, info: tooltip.data, name: tooltip.name, stateCases: utils.getStateCases(tooltip.data, props.dairyData), selectedLegend: props.selectedLegend }} />)}
+                {utils.svis(sTooltip, tooltip, props.selectedLegend) && (<STooltip {...{ x: sPos.x, y: sPos.y, name: sTooltip.name, stateCases: utils.getStateCasesFromName(sTooltip.name, props.dairyData) }} />)}
             </div>
         </div>
     );

@@ -1,13 +1,2 @@
-
-Adjustments to the filter buttons
-    make all of them more narrow. They should take up less space
-    Separate all cases button
-    Add "Filters" text
-    Add lines between the filter buttons
-    Add small text with the last data update
-    Add hover state on desktop with very faint gray background to make it clear they are buttons
-    
-on bottom right can you add two buttons so it is clear there is a zoom function?
-
 add dates to sTooltip  
 filter wildlife tooltips

@@ -54,7 +54,6 @@
     color: #F8F9F9;
 }
 
-
 .inactive {
     background-color: transparent;
     color: #0c0a10;
@@ -102,8 +101,15 @@
     margin-left: auto;
     margin-right: auto;
     white-space: pre-wrap;
-    /* Add this line */
-    background-color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0) !important;
+}
+
+.selector li h4 {
+    font-size: 0.7em;
+    word-spacing: -2px;
+    color: #525252;
+    font-style: italic;
+    background-color: rgba(0, 0, 0, 0) !important;
 }
 
 .selector li svg {
@@ -111,7 +117,7 @@
     margin-left: auto;
     margin-right: auto;
     transform: translateX(4px);
-    background-color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0) !important;
 }
 
 .dairyTransform {

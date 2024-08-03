@@ -12,6 +12,8 @@ import Map from '../map/map';
 
 import allData from '../../../public/data/combined_data.json';
 
+import extractDate from '../utils/extractDate';
+
 const LegendDefault = 'All Cases';
 const WildlifeDefault = 'All Species';
 
@@ -69,7 +71,9 @@ function dataIngest(data) {
     // allData['countyID'] = { 'source': ['row1', 'row2', ...], 'name': 'countyName' }
     // maxMins = [[maxPoultry, 0], [maxWildBirds, 0], [maxWildlife, 0]]
     // maxes = { 'Dairy Farms': maxDairy, 'Poultry Farms': maxPoultry, 'Wild Birds': maxWildBirds, 'Human': maxHuman, 'All Cases': maxAll, 'All Species': maxAllSpecies, 'Otter': maxOtter}
+    // dates = { 'Dairy Farms': mostRecentDate, 'Poultry Farms': mostRecentDate, 'Wild Birds': mostRecentDate, 'Human': mostRecentDate, 'All Cases': mostRecentDate, 'All Species': mostRecentDate }
     let maxes = {};
+    let dates = {};
     let legendOptions = [LegendDefault];
     let wildlifeOptions = [WildlifeDefault];
     for (var entry in data) {
@@ -87,19 +91,34 @@ function dataIngest(data) {
                 if (source != 'name') {
                     maxes[source] = 0;
                     legendOptions.push(source);
+                    dates[source] = new Date(0);
                 }
             }
             maxes['All Cases'] = 0;
             maxes['All Species'] = 0;
+            dates['All Cases'] = new Date(0);
         }
 
         var allmax = 0;
+        var alldate = new Date(0);
         for (const source of Object.keys(countyData)) {
             if (source != 'name') {
                 if (countyData[source].length > maxes[source]) {
                     maxes[source] = countyData[source].length;
                 }
                 allmax += countyData[source].length;
+                
+                if (countyData[source].length > 0) {
+                    for (const line of countyData[source]) {
+                        const date = extractDate(true, line.split(','));
+                        if (date > dates[source]) {
+                            dates[source] = date;
+                        }
+                        if (date > alldate) {
+                            alldate = date;
+                        }
+                    }
+                }
 
                 if (source == 'Wildlife') {
                     // wildlife is a list of comma separated strings: Wildlife,California,Mono,Mountain lion...
@@ -119,11 +138,15 @@ function dataIngest(data) {
                     if (specmax > maxes['All Species']) {
                         maxes['All Species'] = specmax;
                     }
+
                 }
             }
         }
         if (allmax > maxes['All Cases']) {
             maxes['All Cases'] = allmax;
+        }
+        if (alldate > dates['All Cases']) {
+            dates['All Cases'] = alldate;
         }
     }
 
@@ -137,8 +160,20 @@ function dataIngest(data) {
         return maxes[b] - maxes[a];
     });
 
+    //get the dairy farm date
+    for (const source of Object.keys(data[''])) {
+        if (source == 'Dairy Farms') {
+            for (const line of data[''][source]) {
+                const date = extractDate(true, line.split(','));
+                if (date > dates[source]) {
+                    dates[source] = date;
+                }
+            }
+        }
+    }
 
-    return [maxes, legendOptions, wildlifeOptions];
+
+    return [maxes, legendOptions, wildlifeOptions, dates];
 }
 
 
@@ -147,7 +182,7 @@ export default function Container() {
 
     // data ingest takes some time so show a loading overlay
     const [loading, setLoading] = React.useState(true);
-    const [Maxes, LegendOptions, WildlifeOptions] = dataIngest(allData);
+    const [Maxes, LegendOptions, WildlifeOptions, Dates] = dataIngest(allData);
 
     // default selected values, can be selected via key
     const [selectedLegend, setSelectedLegend] = React.useState(LegendOptions[0]);
@@ -173,7 +208,7 @@ export default function Container() {
                                 selectedWildlife : // specific wildlife
                             selectedLegend} // just the normal legend 
                 />
-                <Selector setSelectedLegend={setSelectedLegend} selectedLegend={selectedLegend} setSelectedWildlife={setSelectedWildlife} selectedWildlife={selectedWildlife} LegendOptions={LegendOptions} WildlifeOptions={WildlifeOptions} />
+                <Selector setSelectedLegend={setSelectedLegend} selectedLegend={selectedLegend} setSelectedWildlife={setSelectedWildlife} selectedWildlife={selectedWildlife} LegendOptions={LegendOptions} WildlifeOptions={WildlifeOptions} Dates={Dates} />
             </div>
         </div >
     );

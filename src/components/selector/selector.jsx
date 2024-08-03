@@ -121,6 +121,8 @@ export default function Selector(props) {
     // remove all cases from the legend options
     // and put in its own ul
     const LegendOptions = props.LegendOptions.filter(option => option !== 'All Cases');
+
+    const options = { day: 'numeric', month: 'numeric'};
     return (
         <div className={styles.selectorContainer}>
             <ul className={styles.selector + ' borderBox fontS'}>
@@ -140,6 +142,7 @@ export default function Selector(props) {
                             className={option === props.selectedLegend ? styles.active : styles.inactive}>
                             {icons[option]}
                             <h3>{option.replace(/ /g, '\n')}</h3>
+                            <h4>{props.Dates[option] ? 'as of ' + props.Dates[option].toLocaleDateString('en-US', options) : null}</h4>
                             {option === 'Wildlife' && props.selectedLegend === 'Wildlife' ?
                                 <Subselector
                                     selected={props.selectedWildlife}
