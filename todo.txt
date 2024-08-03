@@ -13,3 +13,6 @@ Map:
         But, when hovering over a specific county, we need the overlay at 0 opacity EXCEPT for the county being hovered over
 
 on bottom right can you add two buttons so it is clear there is a zoom function?
+
+add dates to sTooltip  
+filter wildlife tooltips

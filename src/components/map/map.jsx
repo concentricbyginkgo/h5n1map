@@ -2,387 +2,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { zoom as d3Zoom, zoomIdentity } from 'd3-zoom';
 import { select } from 'd3-selection';
-// import allData from '../../../public/data/combined_data.csv';
-// import codes from '../../../public/data/countycodes.csv';
-// import data from '../../../public/data/combined_h5n1_animal_surveillance_data.csv';
-import states from '../../../public/data/states.csv';
 import styles from './map.module.css';
-
 import { Tooltip, STooltip } from './tooltip';
-import Dot from '../dot/dot';
 
-function setTopIndex(element) {
-    const stopElement = 'countiesOverlay';
-    // we went to set this element to the top of the child stack, and recurse till stopElement
-    if (element.id === stopElement) {
-        return;
-    }
-    const parent = element.parentNode;
-    // get the index of the element
-    const index = Array.from(parent.children).indexOf(element);
-    // remove the element from the parent
-    parent.removeChild(element);
-    // add the element back to the parent at the top
-    parent.appendChild(element);
-    // recurse
-    setTopIndex(parent);
-}
-
-function notNameLength(cData) { // this just grabs every entry in the cData object except for the name
-    let keys = Object.keys(cData);
-    keys = keys.filter((key) => key !== 'name');
-    let len = 0;
-    for (const key of keys) {
-        len += cData[key].length;
-    }
-    return len;
-}
-
-function pretty(cData) {
-    let str = '';
-    // converts the data to a pretty string
-    // for every source in cData, not name
-    const leng = notNameLength(cData);
-    str += `${cData.name}, Cases: ${leng}\n`;
-    let keys = Object.keys(cData);
-    keys = keys.filter((key) => key !== 'name');
-    for (const key of keys) {
-        if (cData[key].length > 0) {
-            str += `${key}: ${cData[key].length}\n`;
-        }
-    }
-    return str;
-}
-
-function hoverListenerConstructor(cData, setTooltip, parentRef, overlay) {
-    return function (event) {
-        const parent = parentRef.current;
-        const parentRect = parent.getBoundingClientRect();
-        setTopIndex(overlay);
-        setTooltip({
-            visible: true,
-            name: pretty(cData),
-            data: cData
-        });
-    };
-}
-
-function circleListenerConstructor(cData, setTooltip, parentRef, overlay) {
-    return function (event) {
-        setTooltip({
-            visible: true,
-            name: pretty(cData),
-            data: cData
-        });
-    };
-}
-
-
-function addEventListenersToID(id, cData, setTooltip, parentRef, setPos) {
-    const element = document.getElementById(id);
-    const overlay = document.getElementById(id.replace('c', 'b'));
-    if (element && overlay) {
-        const hoverListener = hoverListenerConstructor(cData, setTooltip, parentRef, overlay);
-        overlay.addEventListener('mouseenter', hoverListener);
-        overlay.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '' }));
-        overlay.addEventListener('click', () => {
-            //console.log(`Clicked on ${cData.name}`);
-            console.log(pretty(cData));
-            //console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
-            console.log(cData);
-        });
-        overlay.addEventListener('mousemove', (event) => {
-            setPos({ x: event.clientX, y: event.clientY });
-        });
-    }
-}
-
-function setFillsTo(fillFunction, allData, max, color) {
-    const ccs = Object.keys(allData);
-    for (const id of ccs) {
-        const countyCode = `c${id}`;
-        const overlayCode = `b${id}`;
-
-        const datum = allData[id];
-
-        if (document.getElementById(countyCode) && document.getElementById(overlayCode)) {
-            const element = document.getElementById(countyCode);
-            const overlay = document.getElementById(overlayCode);
-
-            // set fill color based on number of cases
-            if (notNameLength(datum) > 0) {
-
-                element.setAttribute('fill', fillFunction(datum, max, color));
-                element.setAttribute('stroke', fillFunction(datum, max, color));
-
-                overlay.setAttribute('fill', fillFunction(datum, max, color));
-                overlay.setAttribute('stroke', fillFunction(datum, max, color));
-
-            } else {
-                const fill = '#b3b3b3';
-                element.setAttribute('fill', fill);
-                element.setAttribute('stroke', fill);
-
-                overlay.setAttribute('fill', fill);
-                overlay.setAttribute('stroke', fill);
-            }
-        }
-    }
-}
-
-function mix1channel(rgb1, rgb2, ratio) {
-    return rgb1 + (rgb2 - rgb1) * ratio;
-}
-
-function whiteToColorGradient(value, color, max, min = 1) {
-    const white = '#F8F9F9';
-    const ra = .3;
-    const wr = Math.round(mix1channel(parseInt(white.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), ra));
-    const wg = Math.round(mix1channel(parseInt(white.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), ra));
-    const wb = Math.round(mix1channel(parseInt(white.slice(5, 7), 16), parseInt(color.slice(5, 7), 16), ra));
-    const halfwhite = `#${wr.toString(16).padStart(2, '0')}${wg.toString(16).padStart(2, '0')}${wb.toString(16).padStart(2, '0')}`;
-
-    const ratio = (value - min) / (max - min);
-
-    const r = Math.round(mix1channel(parseInt(halfwhite.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), ratio));
-    const g = Math.round(mix1channel(parseInt(halfwhite.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), ratio));
-    const b = Math.round(mix1channel(parseInt(halfwhite.slice(5, 7), 16), parseInt(color.slice(5, 7), 16), ratio));
-
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-}
-function allColoringC(dairyD, maxD) { // constructor for all coloring
-
-    stateFill(dairyD, maxD);
-
-    return function allColoring(datum, max, color) {
-        let colors = [];
-        let sources = [];
-        for (const source of Object.keys(datum)) {
-            if (source != 'name' && source != 'Human' && datum[source].length > 0) {
-                sources.push(source);
-                // we have one color for each source
-                colors.push(color[source]);
-            }
-        }
-        if (colors.length == 0) {
-            return '#b3b3b3';
-        } else if (colors.length == 1) {
-            return colors[0];
-        } else {
-            let gradientName = `gradient${sources.join('').replace(/ /g, '')}`;
-            return 'url(#repeat' + gradientName + ')';
-        }
-    }
-}
-
-function countyColoringC(selectedLegend) { // constructor for county coloring
-    return function countyColoring(datum, max, color) {
-        if (datum[selectedLegend] === undefined) {
-            return '#b3b3b3';
-        } else if (datum[selectedLegend].length <= 0) {
-            return '#b3b3b3';
-        } else {
-            return whiteToColorGradient(datum[selectedLegend].length, color, max);
-        }
-    }
-}
-
-function stateFill(dairyD, maxD) {
-    for (let key of Object.keys(dairyD)) {
-        for (let stateI of states) {
-            if (stateI.abbreviation == key) {
-                let statename = stateI.state.replace(' ', '_');
-                if (document.getElementById(statename)) {
-                    for (let child of document.getElementById(statename).children) {
-                        child.setAttribute('fill', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
-                        child.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
-                        // get the overlay by the id of the child
-                        let overlay = document.getElementById(child.id.replace('c', 'b'));
-                        overlay.setAttribute('fill', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
-                        overlay.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
-                    }
-                }
-            }
-        }
-    }
-}
-
-function stateColoringC(dairyD, maxD) { // constructor for state coloring   
-
-    stateFill(dairyD, maxD);
-
-    return function stateColoring(datum, max, color) {
-        for (const source of Object.keys(datum)) {
-            if (source != 'name' && datum[source].length > 0) {
-                let abbreve = datum[source][0].split(',')
-                abbreve = abbreve[abbreve.length - 2];
-
-                if (abbreve in dairyD) {
-                    return whiteToColorGradient(dairyD[abbreve], color, maxD);
-                } else {
-                    return '#b3b3b3';
-                }
-            }
-        }
-    }
-}
-
-function resetFix() {
-    // resets all colorr of classname 'county' to #b3b3b3
-    let container1 = document.getElementById('counties');
-    let container2 = document.getElementById('countiesOverlay');
-
-    function recurseUntilPath(element) {
-        if (element.tagName == 'path') {
-            element.setAttribute('fill', '#b3b3b3');
-            element.setAttribute('stroke', '#b3b3b3');
-        } else {
-            for (let child of element.children) {
-                recurseUntilPath(child);
-            }
-        }
-    }
-
-    for (let child of container1.children) {
-        recurseUntilPath(child);
-    }
-
-    for (let child of container2.children) {
-        recurseUntilPath(child);
-    }
-}
-
-function wildlifeColoringC(wildlife) { // constructor for wildlife coloring
-    return function wildlifeColoring(datum, max, color) {
-        if (datum['Wildlife'] === undefined) {
-            return '#b3b3b3';
-        } else if (datum['Wildlife'].length <= 0) {
-            return '#b3b3b3';
-        } else {
-            if (wildlife == 'All Species') {
-                return whiteToColorGradient(datum['Wildlife'].length, color, max);
-            } else {
-                let species_amount = 0;
-                for (let species of datum['Wildlife']) {
-                    species = species.split(',')[2].trim() + '';
-                    if (species == wildlife) {
-                        species_amount += 1;
-                    }
-                }
-
-                if (species_amount > 0) {
-                    if (species_amount == 1 && max == 1) {
-                        return color;
-                    } else {
-                        return whiteToColorGradient(species_amount, color, max);
-                    }
-                } else {
-                    return '#b3b3b3';
-                }
-            }
-        }
-    }
-}
-
-function getStateCases(dada, dairyData) {
-    // if (sl != 'Dairy Farms') {
-    //     return 0;
-    // }
-
-    var stateAbbrev = null;
-    for (let key of Object.keys(dada)) {
-        // if this key has any elements in its list
-        if (dada[key].length > 0) {
-            // get the first element in the list
-            let first = dada[key][0];
-            // split the first element by commas
-            let split = first.split(',');
-            // get the state abbreviation
-            stateAbbrev = split[split.length - 2];
-            break;
-        }
-    }
-    if (stateAbbrev == null) {
-        return 0;
-    }
-
-    if (stateAbbrev in dairyData) {
-        return dairyData[stateAbbrev];
-    } else {
-        return 0;
-    }
-}
-
-
-function getStateCasesFromName(name, dairyData) {
-    var stateAbbrev = null;
-    name = name.replace('_', ' ');
-    // remove trailing whitespace
-    name = name.trim();
-    for (let stateI of states) {
-        if (stateI.state == name) {
-            stateAbbrev = stateI.abbreviation;
-            break;
-        }
-    }
-    if (stateAbbrev == null) {
-        return 0;
-    } else {
-        if (stateAbbrev in dairyData) {
-            return dairyData[stateAbbrev];
-        } else {
-            return 0;
-        }
-    }
-}
-
-function addStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove) {
-    for (let stateG of document.getElementById('countiesOverlay').children) {
-        //stateG.classList.add(styles.disableChildPointerEvents);
-        stateG.addEventListener('mouseenter', stateMouseEnter);
-        stateG.addEventListener('mouseleave', stateMouseLeave);
-        stateG.addEventListener('mousemove', stateMouseMove);
-    }
-}
-
-function removeStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove) {
-    for (let stateG of document.getElementById('countiesOverlay').children) {
-        //stateG.classList.remove(styles.disableChildPointerEvents);
-        stateG.removeEventListener('mouseenter', stateMouseEnter);
-        stateG.removeEventListener('mouseleave', stateMouseLeave);
-        stateG.removeEventListener('mousemove', stateMouseMove);
-    }
-}
-
-function addOutlines(dairyData) {
-    for (let key of Object.keys(dairyData)) {
-        let stateAbbrev = key;
-        for (let stateI of states) {
-            if (stateI.abbreviation == key) {
-                let statename = stateI.state.replace(' ', '_');
-                let element = document.getElementById("O_" + statename);
-                if (element) {
-                    element.style.filter = 'url(#outline)';
-                }
-            }
-        }
-    }
-}
-
-function removeOutlines(dairyData) {
-    for (let key of Object.keys(dairyData)) {
-        let stateAbbrev = key;
-        for (let stateI of states) {
-            if (stateI.abbreviation == key) {
-                let statename = stateI.state.replace(' ', '_');
-                let element = document.getElementById("O_" + statename);
-                if (element) {
-                    element.style.filter = 'none';
-                }
-            }
-        }
-    }
-}
+import * as utils from './mapHelpers';
 
 
 export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}
@@ -390,6 +13,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
     const [pos, setPos] = useState({ x: 0, y: 0 });
     const [sTooltip, setSTooltip] = useState({ visible: false, name: '' });
     const [sPos, setSPos] = useState({ x: 0, y: 0 });
+    const [stateOutlineState, setStateOutlineState] = useState('');
     const svgRef = useRef(null);
     const dotRef = useRef(null);
     const gRef = useRef(null);
@@ -419,6 +43,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
             visible: true,
             name: event.target.id.replace('O_', ' ')
         });
+        setStateOutlineState(event.target.id.replace('O_', ' ').replace('_', ' ').trim());
     }, []);
 
     const stateMouseLeave = React.useCallback((event) => {
@@ -428,6 +53,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         event.target.classList.remove(styles.childOpacity);
         event.target.style.filter = 'none';
         setSTooltip({ visible: false, name: '' });
+        setStateOutlineState('');
     }, []);
 
     const stateMouseLeaveNoOpac = React.useCallback((event) => {
@@ -435,6 +61,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         //     child.style.opacity = null;
         // }
         setSTooltip({ visible: false, name: '' });
+        setStateOutlineState('');
     }, []);
 
 
@@ -444,43 +71,47 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
     useEffect(() => { // listens for changes in main legend, wildlife and dairy farms are special cases
         if (offFix == 'Dairy Farms' && props.selectedLegend != 'Dairy Farms') {
-            removeStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove);
+            utils.removeStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove);
             setSTooltip({ visible: false, name: '' });
-            resetFix();
+            setStateOutlineState('');
+            utils.resetFix();
             setoffFix(props.selectedLegend);
         } else if (props.selectedLegend == 'All Cases' && offFix != 'All Cases') {
-            resetFix();
+            utils.resetFix();
             setoffFix('All Cases');
         } else if (offFix == 'Human' && props.selectedLegend != 'Human') {
-            resetFix();
+            utils.resetFix();
             document.getElementById('counties').style.pointerEvents = 'auto';
             document.getElementById('countiesOverlay').style.pointerEvents = 'auto';
             setoffFix(props.selectedLegend);
         } else if (offFix == 'All Cases' && props.selectedLegend != 'All Cases') {
-            removeOutlines(props.dairyData);
-            removeStateEventListeners(stateMouseEnterNoOpac, stateMouseLeaveNoOpac, stateMouseMove);
+            utils.removeOutlines(props.dairyData);
+            utils.removeStateEventListeners(stateMouseEnterNoOpac, stateMouseLeaveNoOpac, stateMouseMove);
             setSTooltip({ visible: false, name: '' });
-            resetFix();
+            setStateOutlineState('');
+            utils.resetFix();
             setoffFix(props.selectedLegend);
         }
 
         if (props.selectedLegend == 'All Cases') {
-            addOutlines(props.dairyData);
-            addStateEventListeners(stateMouseEnterNoOpac, stateMouseLeaveNoOpac, stateMouseMove);
+            
+            utils.addOutlines(props.dairyData);
+            utils.addStateEventListeners(stateMouseEnterNoOpac, stateMouseLeaveNoOpac, stateMouseMove);
             setoffFix('All Cases');
-            console.log('All Cases max: ' + props.max);
-            setFillsTo(allColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
+            setStateOutlineState('All');
+            utils.allOutlineFix(props.dairyData, stateOutlineState);
+            utils.setFillsTo(utils.allColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
         } else if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Dairy Farms' && props.selectedLegend != 'Human') {
-            setFillsTo(countyColoringC(props.selectedLegend), props.allData, props.max, props.color);
+            utils.setFillsTo(utils.countyColoringC(props.selectedLegend), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Dairy Farms') { // this is different because dairy data is state level instead of county level
-            addStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove);
+            utils.addStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove);
             setoffFix('Dairy Farms');
-            setFillsTo(stateColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
+            utils.setFillsTo(utils.stateColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Wildlife') { // this is similar, but we need to check the sub legend
-            setFillsTo(wildlifeColoringC(props.selectedWildlife), props.allData, props.max, props.color);
+            utils.setFillsTo(utils.wildlifeColoringC(props.selectedWildlife), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Human') {
             //reset fills to base color and draw dots
-            resetFix();
+            utils.resetFix();
             document.getElementById('counties').style.pointerEvents = 'none';
             document.getElementById('countiesOverlay').style.pointerEvents = 'none';
             setoffFix('Human');
@@ -489,7 +120,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
     useEffect(() => { // listens for changes in wildlife sub legend
         if (props.selectedLegend == 'Wildlife') {
-            setFillsTo(wildlifeColoringC(props.selectedWildlife), props.allData, props.max, props.color);
+            utils.setFillsTo(utils.wildlifeColoringC(props.selectedWildlife), props.allData, props.max, props.color);
         }
     }, [props.selectedWildlife]);
 
@@ -531,7 +162,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
 
             if (document.getElementById(countyCode)) {
-                addEventListenersToID(countyCode, datum, setTooltip, parentRef, setPos);
+                utils.addEventListenersToID(countyCode, datum, setTooltip, parentRef, setPos, setStateOutlineState);
 
                 if (datum['Human'].length > 0 && dotRef.current) {
 
@@ -551,9 +182,11 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                     circle.setAttribute("key", countyCode + 'dot');
 
 
-                    const hoverListener = circleListenerConstructor(datum, setTooltip, parentRef, circle);
+                    const hoverListener = utils.circleListenerConstructor(datum, setTooltip, parentRef, circle, setStateOutlineState);
                     circle.addEventListener('mouseenter', hoverListener);
-                    circle.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '' }));
+                    circle.addEventListener('mouseleave', () => {
+                        setTooltip({ visible: false, name: '' })
+                   });
                     circle.addEventListener('mousemove', (event) => {
                         setPos({ x: event.clientX, y: event.clientY });
                     });
@@ -606,6 +239,24 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         }
         return style;
     }
+
+    useEffect(() => {
+        if (props.selectedLegend == 'All Cases') {
+            utils.allOutlineFix(props.dairyData, stateOutlineState);
+        }
+    }, [stateOutlineState]);
+
+    useEffect(() => {
+        if (props.selectedLegend == 'All Cases') {
+            if (tooltip.visible) {
+                setStateOutlineState('')
+            } else if (sTooltip.visible) {
+                setStateOutlineState(sTooltip.name.replace('_', ' ').trim());
+            } else {
+                setStateOutlineState('All');
+            }
+        }
+    }, [tooltip, sTooltip]);
 
     return (
         <div ref={parentRef} className={styles.mapContainer}>
@@ -9955,7 +9606,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                 d="M338.72,290.53l-6.1-1.2-5.51-1.09-6.71-1.52-3.83-.77-3.17-.5-37.33-7.92-2.94-.67-9.89-2.27-.2-.08-29.61-6.73-14.65-3.37L205,261l-.9-.23-16-4.09M642.4,399.89,641.48,415v.2l-.9,15.34-.18,3-.74,12.32-.2,2.9L638.69,461v.22l-1.1,18.47-.2,3.32-.59,9-.89,14-8.68-.61-14.4-1.19-3.52-.27-2.32-.17-25.53-1.9-20.05-1.68-7.43-.68L549.7,499l-1.81-.17-13.76-1.4-8-.82-13-1.33-3.89-.42-7-.77-3.58-.69L487.15,492l-1.68-.2-24.75-3.1-18.33-2.45-26.28-3.74L407,481.18l-4.48-.88-7-1.06-18.19-2.86-30.86-5.2-9.82-1.74-31.45-5.85m186.23,213.9-2.3-2.46-.28-.38-.54-.65v-.41l-.14-.52.61-.54.23-1.84-.54-.17,0-.62.61-.29,1.2.1,6.44.68,11.16,1.17,31.83,3.25,2.08.2,24.3,2.17,1.31.11,7.59.62,11.72.92,1.74.14,1.53.11,2.09.16,1.66.13.72,0,.23-3,1.13-15.24L597,645.82l1.35-15,.6-6.4.8-8.9,1.35-16.77,0-.37,1.17-15.27.54-7.26.61-8.05,1.16-15.45.32-4.11.84-11.12.66-9.25.43-5.65,1.15-.68,1.29-17.6M792.23,317.3l.88.06.34.14.27.38.11.4v.54l-.18.49.3,4,.79,1.47-.32,2.17,2.14,5.92,3.44,6.39.47,6.47,3.65,6.19,1.14,4,.39,7.12,1.84,1.11-.36,4,1.17,5.11-.83,4.17,2.37,7,1.48,2.16.34-.75,1,.88-.57,1-.31.28.15.62,1.72,4.34,1.85,1.8.08.18v.11l0,.64v.09l6.55,9.21v.33l.17.24,3.24,2.93,1.31.84.66.24.51.2.1,0h.12l1-.09.2-.08.16-.15,0,0,.92-1,2.24,2.82.22,1,.21,1-.57,1.26-.56.09-1.94,1.71-.1.12-.93,1.35-.31.45-1.07,3.19,3.64,4,4.82,7.65,5.18,1.38-.12,1.64,0,2.45.08,7,0,3.84,0,9.21,0,3.14.15,11.6v.82l.08,12.84v.69l.16,10.22,0,.92.13,9.94,0,2.07.11,8.17.06,3.49.08,6L844,540.34l.33,2.1,1.85,12.06.65,4.25,1.28,8.47v.61L848,583.59l-.07,7.23-.06,7.8-.09,11.19-.06,8.78-.07,10.67M900,167.32l-.13.09-.34-.15-1.39-1.36-.65,0-1.71,1.16-.14.28,0,.26.08.22.12.16,0,0,0,.39-.33.86-.11.1-.12.08-.72,0-.68-.06-.55-.39.32,8.59.33,9.08.06,1.52.05,1.37-3.56,2.23-5.1,3.36-1.22,1.06-.31.41-.3.55-2.46,4.92-1,3,0,.55V206l.06.93.09.69.33.25,1.17.2.49-.07,1.94,1,1.21,2.29.49,2.47-.93,2.37-.65.81,0,0-.29.27-.38,3.05-.52,4.62.08,1.15.61,1.3.53,2.46-.19,2.64-.87,4.14,1.78,1,2.58,2.19.27.34.06.34,1.82,1.8.39.19,1.06.12,3.37.14.43.09.28.13.24.21.09.14.14,1.67,1.85,1.29,4,1.53,2.76,1.33,1.35,1.29,0,.78-.16.54.58.52.52,1.93.38.8,8,5.73,3.94,1.14,3.66,4.65.62,4.24,1.67,7.85.44,2.7,0,1.8,2.72,1.91.59.75.77,1.24-.1.44-2,3.29-.66,2.58.54,3.34.57,2.67,2.34,5.2.32.66,2.07,1.37.71.33,1.35.32,3.32.64,1.28.3.29.15.19.19,1.63,3,.28.88v.2l-.09.17,5.5-.27,12.85-.75,2.29-.13,11.2-.58.92-.06,10.93-.61,4.21-.28,1.78-.12,10.33-.86,2.67-.26,10.27-.71m-73,4.62-.36.62v.07l0,.2.06.18.21.21.6.43,1.73.9,2.2,1.53h0l.07.06,1.54,1.78.07.11V319l-.14,1-.15.33v.22l.36.81,0,0,.73.92,0,0,.44.35.48.31,1.07.35L955,328.7l.29,3.67-2,5.23-1.83,2.06-.41,3.82-1.36,1.82-1.55,1.82-5,2.45-2.1.53-.9,0-.38-.05h-1.6l-3.67,1-1,.36-.28.18h0l-.18.26,0,.08-.36,1.49-.31,1.21-.75,3,0,.31,1.77,2.13.84.42.35,0,.21.09.23.24,1.23,2,0,.84,0,.09.1.31.13.94-.11,2.86-.22,1-.15.22-.75.43-.29.27-2,2.92-.1.45-.18,4-1.84,2.16H930l-.69.05h-.22l-1.43.51-.16.09-.66.38-.23.15-.08.09-.1.09-.1.11-1.11,1.71,0,.26.08.3.54.25.44.64.15.42,0,.36-.08,3.17-.06.31-.32.25-.81.29-2,4.66-.16,1.72,1.88,8.92,2.67,6.48,1.59,2.52,3.77,2.88,6.45,6.7,6.58,5.84,1.26,4.29,0,.44-.73,1.14,0,.11.07.24,1.46,3.91,5.74-1.52,4.82,1.17.7.22.68.33.52.3,2.65,1.6.11.2,0,.21-.1.81-.06.33-2,2.41.56,2.81-1.8,4.66-.12.43-1.89,4.91-.07.09-.13.24-.39,1.36-.06.15,0,.36,0,1.47.37,1.58.32.78.5.69.09.12.07.07,2.3,2.24,1.39,1.05,7.75,7.07,7.4,2.06,4.75,7.86v.21m2.08,37.66,1.51-.08L986,522l0-.1,0-.13.09-.35,0-.09v-.21l-.08-.4-.18-.4v0l-.18-.28,0,0-.06-.05-.07,0-.43-.12-.78-.12-.52.08-.17.1-.32.43,0,.06,0,.14,0,.16,0,.12,0,.11,0,.15v0l.3.65.66.93.26,2.19,1.12,1.58,0,1.63-1.21.29-1.47.38,1.82,1.25.65,1.24-1.77,1-2.4-.27,1.17,1.87,1.78,1.12-.23,1.3-1.91,1.07-.19,1.85-.94,1.36.06,1,1.35.5.73.84-.41,1.49-1.49-.53-1.13.1-.23,1.26,1.83.89-.34,1.25-1.81.32-.44.88-.65.63-1.59.55-.86-.15-1.28,1.16,1,1.87,1.45-.77,1.07,1.11-.56,1.14-2.39,1.38.83,1.17.49,1.58-2.07-.48-.42-1-1.1.12-.09,1.69.79,1.07-.43,2.78-.51,0-.9-1-.82-1.65-.77,1-1.34.46.21,1.72.53-.3.24-.65.71-.39,1.29,1.14-.45.56.21.9-.27,1-1.61,1,.39.72h1.44l.83.66.25,1-.94,1.35,1.28.44-.14,1.24-.83,1-1.87-.92-.64.69-.88,2.72-2.43.17-.34,1.09,0,.49.72,4.73-3.2,1.17-4.41,7,.4,4.08.3,3.14-.2.67,0,.06-.06,0-1,.87-1.24.6-1.51.31-1.5.29-2.75,4.92-1.3,2.68-.41.87.1.37,1.31,1.06.3.77-.17,1.17-5.66,2.85-2.32,10-.16.79,0,.08.17.31.87.65.82.66v0l-.08.38-.51.44-2.14.86.4,1.11,0,0,1.48,1,1.21.82.23.81-.35.7-1.51.44,1.47,4.2,1,1.8.76.81.09,2.69-.94,3.84-.86,1-.24.27-1,1.56-.31,1.11,0,.29,2.35,10.65.18.41,0,.06.09.11,0,.06.07,0,.28.24.07.06.93.29.21.48-.67,2.24.06.56v.05l.08.12.12.2,0,.06,3.27,3.48.2,5.05-3.41.42,3,3.5-6.09,8.88-3.39,4.48-.29.53-.47.8,0,0-3.2,6.42-.07.14-.11.23v0L936,710l-.72,3.78-.73,5.47,13.8-.65,3.48-.17,7-.39,7.76-.46h.58l6-.38,2.63-.16,12.68-.85,3.22-.22.07,1.09-.37,1.85-.31.67-.18,0-.25,0-.07.08-.39,1.64-.46,2.24-.36,1.85-.33,2.5,5,6.93.05,0,.19.2,1.88,3.81.05.65-.28.71-.08.29,0,.19,1,1.82.3.56.65.77.23.26.07,0,.11.07.07,0h.06l1.4-.09m-5.44-239.47-1.3-2.94,6.19-6,.15,0,10.52,4.47,2,.22.2,0,.64-.28.33-.91.4-1.95-.78-1.74-.34-.32L1012,495l-1.16-1.4-.24-.76,0-.23.78-3.46.15-.35.35-.46.25-.18.19-.15.48-.22.17-.07,1.61.52.69-.92.47-.44h0l.14-.09.66-.4h.06l.17,0,.48-.14,4.4-.93.28-.06.52-.6V484l-2.19-2.26-.22-.4-.58-1.6,0,0-.15-.79v-.05l0-.24.15-.39,0-.08.22-.38.45-.83h0l1.27-.92.33-.36.21-.38.13-.36.36-1.33,1.3,0,1,.62.57-.91.54-.46-1.16-2.1.25-1,6.21-.49,1.09-.33-.21,2.42,1.49.39,1.13-1.43-1.47-1.6.81-2.45,1.66,1.64,2.19-.66,4.2,1.13,1,.68,4,2.67,2-3.69,1.71-1.6,4.26-2.82,4.87,5.05h.21l.36-.12.76-.59,1.79-4.08-.21-2.09,0-.38.11-.16.15-.09.56-.11h.16l5.52-3.55-.08,1v.46l0,.06.19.69.16.24.06.09.14.1,1.23.81,1.19.47.2,0,4,.2.82-.27,1.32-.45.68-6.16,2.55-4.2,3.8-3.68,5-5.65-.09-2.21,1.9-5.69,3.78,1.31,4.46-3.05,5.93-4-.37-1.52-2.71-4.31,1.25-2.82,5.41.47,3.06-1.12,5.32,2,3,4.87.26,1.61,5,1.43,4-.43.93.12.33.13.17.13,2.39,2.47,2.12,1.06,1.56-.19.15-1.23.21-.35.28-.19,2.13-.93.34-.08.23,0h0l1.09.27,2.92.7.07,0,.92.43,1.62,1.18,1-.9,2.61-.35.69-2,1.89-2,.49-.22,2.26-1,.74-.32h.17l.28.12.13.14,0,.06.08.1,0,.1,0,0v.05l0,.21,0,.24v.05l0,.42.26,1.11.76,2.29.06.13.18.39.22.26,0,0,.58.4.13.06,4.36,1.7,2.11,3.22.18,2.15.85,1.11.07,1.34-.27,1-.68,3,0,.78,1.23.67v0l.51.95.81.34,1.38,2.2,1.85.68,0,0v.23l-.71,1.22,2.5,2.56,3.18,3.92,0,.18,1,1.58,2,1.18.94-.56.84,1.6,1.77,1.53,1.8.4,1.63-.57.72.33.94.35-.08.56-1.24,1.11-.07.23.19.53,2.14,1.22.23,2.13,2.3,2,.33.16,3.11,1.13,1.84,1.09,3.2-.64.09-.05,1.2-1.1,0,0,2-2.13,1.12-2.25,4.59,3.15,3.18-1.94,3.21-1.15,1.94-.82,1.14-1.35-1.13-1.09.43-.75.16-1.26,2.74,1.58,3.4-2.55.28-.23,2.76-2.17,1.31,1.88,1.2-1.08,1.19-.76.18-.47,1.09-.62.55-.5.34-.89-.33-.16-.41.63-.86-.21.45-.43-.31-.92,1.07-1,1.58-1.91L1233.9,451l1.81-5.14,3.21-5,1.89-4.32.52-1.25-.43-2.6,2.16-2.56,1-1.35-.66-1.34v0l0-.12,1.67-2.61.72-2.57.14-2.48,0-2.9,2.7.65.56.25.51.51,1.66,2.46,4.69.8,1.9-2.74,2.76-10.63,1.23-2.78,3.76,1.94,1.46-4.27.59-.6.26-.9.78-.34.12.84,1-1,.33-1.14.74-1.06.59.33.89-2-.47-.26.53-1.18.78-1.46.85-.51.48-.5.1-.74.74-1-.59-.38-.1-.38-.29-.15.61-1.76-.61-.18.23-.2.24-.93.7-1.22.33-1.34-.68,0,.31-1.18-.61-.56,0-2.34,3.65,1.79,6,3.18,6.31,3.34,1.62-7M982.11,484.92l0,.32.17.7h0l.78,1.46.52.77.72.71.35.43.44,1v.09l.16.59v.08l-.11,1.07-.11.34,0,0,0,0,0,0-.31.16-1,.27,0,3.07.7,1,1.7,3.19,1,2.4,1.85,1.5,5.33.58,1,1.27-1,3.5-.8.47v.81l1.61.86L994,516.49l-.92,1.07-.3,1.5-1.27.05-1.73-1.67-2,4.86,1.77-.28,14.26-1h.21l.31,0,8.36-.61.76,0,12.16-.85.44-1.08-1.45-5.25,1.63-.09,4.56.09v1.08l4.42-.51,1.47-.17,8.47-.88,6.13-.6,1.51-.18,8.24-1h5.58l4.19-1,5.78-.2,6.38-.27,5.24-.32,9.78-.94,3.87-.7.54-.1,8.59-.53,5.12-.24h.21l14.38-1.35,1-.1,6.64-.76,1.58-.16,7-1.35,5.65-.62,13.5-1.71,4.27-.45,6.06-.64,8.71-1.26,1.39-.21,2.7-.37,5.86-.88.26-1.18,2.66-.32,5-.67-.88,1.38,9.18-.89,12.54-1.52,1.78-.18,6.23-1,4.79-.52,10.7-1.5.72-.12,8.61-1.45,5.63-.94,1.12-.21,3.5-.62,3.41-.63,2.22-.39,9.4-1.7,1.7-.33,7.62-1.42,3.65-.74,7.61-1.46,4-.79,3.64-.7,12.91-2.55,3.6-.78,6.81-1.4-.2-.31,11.8-2.2,4.87-1,5.21-1.1,7-1.5m-121.9,231-.46.05-2.55.31-1.86.09-3.52-.39-4.67-1-1.27-.86-3.28,1.91-.26,3.78.13.72.47.71.92,1.2.39,1.08,0,2.34-.16,2.4-.15,2.42-3.43.67-.2-.05-.62-.49-.56-.8-.3-.79-.88-4.91-6.15.38-1.22.09-3.75.27-3.18.23-13.48.93-5.21.36-1.44.09-7.67.53-4,.26L1164,711l-2.3.15-5.94.42-3,.21-14.54,1-5.31-9.58-14.62,1.79-16.14,1.88-4.55.45-6,.61-9,.86-2.87.22-11.27,1-13,1.24-.67,4.69.39.66,3.05,3.33,1,.66.17.06.5.09,1,.52,1.35.84.37.6.11.41.05.58-.31,7.65-.4,3.83L1060,736m246.19-160.21-3.7-2.65L1288.33,563l-12.7-9.26-.39-.27-7.43-4.94-6.77,1.1-11.12,1.61-6.82,1-6.11.9-.58-.1v-.33l-.2-3.58-2-2-2.28-2.33-1-.39-2.19,2.37-1-.66.69-2-.75-1.14-8.08.74-1.1.1-11.38,1.2-3,.31-2.68.29-7,.73-4,.18-5.83,3.06-5,3.43-3.68.94-3,1.44-2.72,1.32-.62,2.79-2.59,2-1.89,3.41-.46,2.65.56.94,7.27,4.47,1.76,1.22,1.77.25.32-.16h0l1.14-.28,1-.14.6.17.3.23v.09l.95,1.47,3,4.27,1.07,2.81,5.1,6.28,1.2,1.82,4.33,2.58.18,0,.41-.16h.13l2.5,1.26.76.54,1.8,1.48,1.16,2.19,3.36,2.93,2.83,1.2.47.44.25.23,1.37,1.3,1.94,2.27L1213,610l1.9,2.7,2.73,2.05,4.89,2.29,2.4,1.33,5.57,9.83,1.26,5.11,3.06,1.23.56.21,2.61,2.15,3.11,6.31.38,1.86.15.68.28,1.4.38,1.52.14.14,1.65.64,5.45,1m97.22-230.31,1.57-.3m8.73-1.69.9-1.84,10-3.4m1.89-15.77-7.77,1.7-.4.09-1,.24-.43.07-.37.08h-.1l-1.36.26-.56.11-1.6.3-.79.15h-.1l-1.87.32-.83.14-.31-1.11-.29-1-.37-1.32-.71-2.54L1349,388l-3-10.68-1-3.49-.49-1.73-.77-2.74-2.45-9.15a6.7,6.7,0,0,1-.36-1.34l-.34-1.27.24-.06,0-.14.08-.34.14-.45.16-.43.17-.4.19-.38.2-.36.22-.33.23-.3.24-.29.25-.26.27-.24.28-.22.28-.19.29-.18.31-.15.3-.14.32-.11.32-.1.32-.08.33-.06.33,0,.33,0h.67l.34,0,.33,0,.33.05.33.07.33.09.32.09.32.11.31.13m6.63-58-1.55,1.11-.73.79-.63,1.29-.13.39-.32,1.36,0,.48.11.1,0,.58-.16,1.05-.72,1.71-1,1.46.14.19-2.85,5.32,2.49,2.93.08.21v.21l-.88,2.69-.54.75-.39,0-.39,0-.21.06-.45,1,.28,2.11.64,2.51.18.31.28.55,3.76,1.54,2,4,2.55,1.54.17.09,7.06,5.43-1.52,1.28-1.1.12-.33,1.09-2.79,2.36-1.69,2.47-2,3.7-1.05,1.5-3.2,1.36-1.68,2.26-1.26,2.43-.34,1.21-.08,1.43-.52,1,.28,1.77m26.44-39,.06-.69-.22-.79.34-.57.3,0,.23-.44,0-1.14-.1-.33-.17-.84.36-.47.61-.17,1-.24.9-.39m.93-2.12.15-3.24.7-3.58.19-1.21v-3l-9.07-2.69-.61-.18-3.83-1.3-9.62-3.37-2.09-2-1.15.13-2.06.1-.45-.21-2.79-1.45-.8-.75-1.12-1.1-.7-1.61-4.16-7.47-3,.17-1-2.45-.47-.44-1.54-1.08-.49-.11-3.13.7-15.78,3.41-1,.22-10.45,2.15-9.38,1.87-1,.22-16.35,3.32-3.57.72-11.63,2.2-2.58.51-7.36,1.35-7.08,1.38-1.13.19-3.63.62-14,2.48-.39.08-3.48.6-.81-4.59-.67-3.89-.15-.93m219.88-70.39-1,.57-.84-.46-.74,0-.17.1-.2.09-2.38,1.75-.34,2.09-2.06,0-.34.34-.66.91.45,1.86h-1.17l-.16.37-.64,1.5-8.45,1.95-.11,0-.38.09-6.19,1.39-.75.17-8.89,1.92-4.4.94L1389.57,237l-2.33.49-6.07,1.31-.23,8.6-.38,15.46.58,1.18.25-.06,11-2.33,1.13-.25,4.78-1.13.38,1.51,1.35-.46,0-1.47,6-1.43,9.41-2.23.86-.16,1.08-.23,6.53-1.55.18.51,7.46-2.29,3-.84.28,1.18.83,3.21,1-.45,0,.43.52.92v.6l.22.28-.12.44.18.29.14.46.26.21.17.28.16,0,1.89.23,1.31,1.2m1,1,1.47.24.58,1.09,0,.66.35.25,1.19,3.76M1132.87,703.11l-.88-2.54-.32-.69-.22-.4-1.42-1.56-.22-.06h-.26l-.26-.15-.3-.71-.42-2.49.21-.91.32-.93.37-7.46-3.26-8.12-.52-.69,1.39-7.52-.09-2.62,3.19-6.29.07-.1.24-1.11-.29-.58-.72-.6-2-.53-.18-.21-.07-.29.33-1.25-.81-4.84-2.81-3.12-2.12-4.66-1.87-4.17-2.35-8.14-.21-.74-2.84-10.24-.53-1.89-1.64-5.84-2.37-8.55-.6-2.14-1.12-4-1.95-7.08-2.41-8.15-.62-2.22-.34-1.2-2.3-8.14-1.11-4.29m-133.73,11,16.66-1,2.27-.17,8.31-.53,4.39-.32,5.14-.37,5.53-.43,1-.09,11.54-.92.48,0,4.65-.38,6.09-.89,21.66-1.67.35,0,10.66-.75,1.49-.14,13.2-1.3h.22l12.7-1.23,7.35-.67,3.77-.39,3.08-.33,2.79-.38,8.11-1,4.76-.56,1-.12,4.37-.53,8.48-1.05-.1-7.74,2.31-2,3-.08,1.08-.88.66-.9,1.15-6.28.23.07,7.65-4.84h.65l4-.42.35-.22,4.86-3.85,1-1.49-.13-.66,7.79-3.88,1.09-5.52,1.26-.32,2.48-2.32,1.76-1.73.49-.36.71-.51.13,0,.42.28.54.52-.38,2.1,1.53,1.09,1.08-1.21.79-.23,2-3.65,5-3.72,4.17,1.21,3.29-6.16.3-.85.2-.56,1.29-1.44,1.4-1,0,0,.15-.09.17.4.74.24.43,0h.06l.58-.2-.11-1.66,0-6.77m179.11-257.07-.71.21-1.06-2,.63-1.55-.73-3.41-2.62-12.79-1.48-6.9-.78-1.61-1.08-.22-.7-1.21-1.58.17-.07,1.95-.83-.35-.1-.14-.25-2,.14-1.42.47-2.6-.9-1.76-.43-.77-2.92-6.9-.06-.12-.06-1.18V193l0-2.9,1-2.93-1-3.38.35-2.35,0-.38h0l-.46-1.23-.35-.76-1.16-1.4-.71-.42-.41-.34-.37-1.31-.32-1.07,0-2.55.19-2.84-1.43-.91-.26-1.57.48-1.56-.19-1.37-.92-1.08,0-.77m-46,234.89,2.9-4.39-3.31-2-1.39-.72-1.53,2.51m-67.35-15.71,2.87,18,.82-.31,2.16-2.35,1.41-2.6,5-6,2.89.65,4.4-6,3.23,1.28,5.1-.28,2.81-4.8,1.42.28.32,0,.94-1.74.7-1.1.18-.21.16-.06.91,0,1,.1,1,.37,1.22.89.45.5.75.82,1.28-.48,1,0,1.31-.48,1-.13.12.92-1.17.49,1.18,1.85.78.42.76.06.33,1.91,1.76.25-.11,2.75,1,.59,1-.12,1.67.62,1.46-.34,1.06,1.33,2.32.66-.3,1.41-.78.3-.11.29v.16l-.07.44,0,.32v0l.19.59.17.21.17.12,1.73,1.17h0l1,.07,1.31-.07,1.28-.13,1.5.69,1,.32.05,1.11.59.43.56,0,.4.11,1.3-.16.84.72,1.14.83,1.17.63.79,1.47.14,1.44.05.43-.66,2.77-.84.63-.38.94-1.1.07,1.47,1.54m-145.34,32.62,1,.3,1.57-.67,2.28-1.24.93,0,1.26-.48.47-.73,0-.23,0-.26.12-2.51v-1.6l.36-.27,1.42,0,.66-.46.16-.68-.76-2.08.15-.95-.48-.58-.27-1-.69-.6.07-.95.84-.57.7-.87.13-.85-.19-1.14.48-.76.55-2.08.08-.49.76-.76.49-1.35.52.09.83,1.13,1-.18,1.21,1.78-.66,1.25.09.27.91.59,1.17-.55.37-1.2.2-.94,1.2.94,1.15-.38,0-.73-.76-.72.49-1.41L1187,411l-.29-.34-.62-.41-.3-.22-.29-.39-.27-.44,1.1-.15.71-.61-.12-1.79-.39-1.45.47-1.05.55-.13v-.62l.16-.94.55-.31,2.55-.24-.17-2.71.5-.5,1-1,.7-1.29.52-.14.31,0,.48.48.77,1.42.79.21,2.59-2.25,1.14.06.24-1.09.61-.92,1-.45.32-.6,1.8-3.5,2-2.52,1.43-.2.49-1.16-.07-2,.8-.39-.1-.91-1.14-1.05.9-1.6-.23-1.11.15-.58.69-.69-.81-1.45,1.07.21.42-.38-.51-1.24.45-.92-.34-1.35.13-1.14v-.67l-.26-.47.7-1.09-.38-2.23.4-.89.46-2.1.91-.93-.12-.57.29-1.22-.59-1,0-.87-.79-.48.3-.54-.17-1,.32-1-.12-.82-.66-.67-.37-1-.66-.66-.63-.48-.09-.75.53-.86,1-.64.61.11.38-.4,1-.8M1094.42,328l.72,5.8.44,3.65.66,5.42.08.65,1.1,9.23.29,2.34.82,6.81.64,5.46.87,7.71.18,1.48,1.08,10.72.32,3.1.75,6.68.63,5.59.19,1.59.78,7.61.81,7m-82.29,54.68-1.39-3.1,1.31,0h.05l.06,0,0,0,.07-.15.39-8.12.16-3.67,0-.17,5.27-7,2-5.61.53-1.43,2.14-2.74.22-.18.27-.49.38-2.23v-.86l-1-2.24-.06-.09h-.11l-.22-1.75.16-.22.19-.55.08-1.12-2-3.47-1.27-1.5-.56-1.88.36-3.65,1.25-7.84-.42-4.58-.89-9.69-.78-9.32-.91-11.59,0-.5-.77-8.63-.86-9.61-.5-5.48-.42-4.63-.51-6-.71-8.38m-98.88,53.84-1.74-.12-1.1-.89-2.67-3.28-.1-.25.09-.71-.06-.23-2.1-1.58-.55-.35-6,0-6.24.44-4.51.29-7.58.52-2,.1-10.11.53-7.32.34-4.84.14-5.74.24-6.38.26-5.73.18-6.32.16-4.25,0-7.48,0-7.62,0-4.53,0-10.36-.1m129-214.18,2.76,1.51,4.93,6.05,2.25.47,2.47.51,17.56,3.61,1.32.27,1,.22,1.67.56,1.72.84,1.49.73,6.22,1.59.5.89,4.28-.45,7.13.89h0l.61.09.93.45.58.39.38.24.72,1,.07.11,0,.12-.34.58-.4.56-.17.13-.43.55v0l0,.12.16.31h0l.93.76.21,0,.33.1h0l.34-.05L1004,195l.47.37,0,0,.06.07.73.9.25,6.32-2.39,5.24,3.36.07,1.28-1.3,1.59,1.31-1.67,5.1v0l.22.72.11.19,1.93,2h0l.63.11,1.12.17M257.45,607.87l3.07.23,4.07-2.52,1.27-1.79.26-.91.28-2.3-.87-2-.08-.09-.09-.11-2.55-.43-.47-.2-1.35-1-.61-1.63,0-.06,1.73-10.63,2.94-.72,3.52-4.16,1.14-4,.83-4.15.16-1.14.75-2.68.82-1.42,2.63-3.72,3.61-1.39,2.48-1,3.67-2.12.16-1.57-1.35-2.35-1.55-1.74-1.79-2.14-1.81-7.62-.1-1.41-1.94-3.06-1.55-4,0-.19.05-.48.88-3.9-3.83-5.7-10.39-15.54-.72-1.07-1.94-2.89-5.61-8.43-5.51-8.21-.32-.46-4-6-1-1.44-7.49-11.25-9.24-13.84L223.81,452l-3-4.46-.53-.78L206.21,425.6,193.73,407l-15-22.5-3.52-5.24L170,371.41l-6.45-9.68-1.39-5.25.37-1.54.44-1.83,1.31-5.15,1.19-4.4,2.5-9.46.53-2,2.65-9.91,1.72-6.56.51-2,1.58-6.11L178.13,295l2.79-10.87,7.17-27.68-7.23-1.82-1-.26L170.65,252,166,250.7l-14.18-4-20.92-6.23-1.4-.43-.8-.26-3.07-.83-3.37-.84-8.48-2.4-.65-.18-1.1-.33-2.67-1-1.87-.39-7.24-2-7.58-2.09-9.65-3M339.07,40.28l-3.61,16.91-2.1,9.74L331.66,75l.72,1.28,4.72,9.6,0,.13,0,.09v2.14l-.8,2-.67,1.53-.45,2.84,0,.87L339,100.7l.51.44.41.36,1.28.62,1.86.75.41.29,2.13,4.8,2,4.65,1.13,2.11.61,1.13.47,3.54h0l.11.3,3.53,4.71.34.09.16,0H355l1.35,3.34,2.63.56.55-.15.38-.15.62-.12,1.26.17.43.35.12.11.13.14.09.4-.15.77-.85,2.4-1.43,3.3L358,140.43l-6.84,17-.85,4.69-.43,2.37,0,.13.08.09,1.08.15,1,.24.31.14,1.8,2.84.22.87,1,.16,4.8-2.2,3-2.65,2.15-1.24.5.53,2.38,3.36.13.44.28,2.77,0,1.05-.32.57-.06,2.08,0,2.75L372,190.86l4.07,5.65.83-.2.87.68,1,1.16.47.73.53,1.68.71,3v.27l-.14.27-.1.08,0,4.37.29,1.65.68,1,2,2.23.64.23.5-.28.25-.38v-.09l.29-1.31.36-.55,1-1,1.65-.39,8.75,2.18,3.73-1.4,6.82.7,4.93,1.41,3.19.09,4.23-4.86,2.79-1.05,1.18,1.16,2,3.94,1.09,3.15.28.83,2,1.85m178.17-30.16-.16,2.22L605,213.06,604,220.55l-1.22,14.92-1.13,13.66-.12,1.37-.87,10.07-1,12.28-.07.88-1.38,16.74,14,1.14,12.85,1,5.31.4,18.1,1.25,5.27.34,6.37.49,10.15.53,8.19.43,9.26.43,5,.23,1.83.09,2,.11,17,.71,7.14.26,19.31.56,4.73,4.24,3.6,1.63,2.79,2.41.55.25.46.07h.42l1.3-.2.34-.21.73-.66.53-.77.66-.67.12-1.07,1.54-.19.64.84.84.19.72-1,.91.23.63.89.88-.85h1.15l.22.71.53-.05,1.47-.56,1.64.36,1.39-.6,1.14-.28,1.52.77L773,304l-.09,1.51,1.52,1.18,3.17.91,5.36,2,2.09,1.33.29.64.14.58-.09.41,0,.32.08.32,1.83,2.73,5,1.27-.92-2.54-.93-2.45-.66-1.06-.85-.79-.67-.51,1-4.7,1-2.75,1.77-6.12.41-1.08.07-.24-1-3.52-.24-.13h-1.83l-.56-1.27-.14-1.62,1.66-.07,0-2.46-1.86-1.9,0-2.41,3.7,0M775,89.31l-.11.11-.11.51,0,.52.13.73,1.69,5.52.46,1.35,1,2.34-1.57,4.84.69.75.15,8.35-.77,3V118l.55,2.21,2.28,8.22,3.08,7,.82,6,.43,9.11.12,3,0,4.43,1,3.33.3.81-.47,7.62,0,2,1,3L789.1,183l.94,7.35.07.61-.05.71-.06.22-.45,1.27.33,3-.14,1.53v.12l-.11.93-.09.76-.06.32,0,.17,0,.08,0,0,0,.09-1.71,2.55-.5.5-.94.52-.85.55-2.24,1.8,0,0-.05.06,0,0-.08.2-.34,1.17.1.14.44.56,1.71,2.29,1.7,3.74,1.9.25,2.36,1.16.81.64.47,1.08.4,2,0,10.21,0,12.16,0,3.08-.07,12.17-.08,12.19,0,12.28,10.14,0h4.87l10.32-.06h1.69l12-.11,1.54,0,10.43-.15,5-.07,7-.11,8.16-.19,3.85-.09,11.36-.32.62,0,12-.42,2.65-.09,9.34-.38,8.87-.38,3-.14,10-.48m-661.87-4.17,13-57.73,2.7-6.56.73-1.23,1.19-2.25,1-3.89,1.24-1.52,0-.06,0-.08,0-.09h0v0l0-.36-.09-.27,0,0-1.3-2.57-.26-.16-1-.34h-.13l-.23.1L277,196.08l-.37-.63,0-.5,0-.29.06-.19.85-5.76.3-.62,5.42-7.45.58-.52.17-.07.6-.14,2.34-.8,1.33-1.43.74-.78.57-.62.82-1.42,0,0,0-.28-.14-.34-.09-.35,0-.7.61-1.28.77-.71,1.19-1.07,3.66-6,.83-1.75,4.24-5.44,2.35-2.4.59-.67.09-.44-.84-4.43-.16-.68-.48-.6-.41-.54h0l-.89-.39-2.13-2-1.12-1-.07-.13-.11-.21-1.72-5.38L283,135l-2.92-.71-8.9-2.14-.46-.11-23.53-5.64-.69.57-.52.23-1.79.52-.87.14-1.06-.08-.63-.16-.67-.34-3.67-.51-1.39-.07-1.38-.09-1.65-.68-.9-.49-1.29.91-.91.84-2.55-.24-2.34-.24h-3.35l-3.69.45-.78.19-1.28,1L211,128l-1.91-.33-.5-.33-.3-.43-.63-1.2-.69-.48-1-.26-.51.17-1.06.51-2.62.37-2.15.33-1.28.39-.52-.7-2.16-1-3.11,1.27-.39-2.54-3.23-1.9-.85-.17-1.67-.25L184.71,120l-2.63,0-2-.16-.66-.16-1.69-.93-1.45.09-1,.54-.68.61-8.7,1.22h-.45l-.7-.19-.8-.39-6.79-4.19-.65-.49-1.25-1.31-.47-.61,0-.86.24-.63.52-.89.64-4.27.18-.57.22-3.33-.68-3.82-.24-.92-4-4.85-1.15-.48-1.25.23-3.78-.15-.19-.07-1-1.6.54-1.56-.26-.83-.35-.63-.1-.16-.07,0-.14-.09-1.58-.09M842.05,510.77l-10.82.09H829.4l-9.29.09h-3.19l-7.34.05h-5.94L789.06,511l-6.24,0-11-.1-8.74-.11-9.44-.16-8.61-.16-6.53-.14-5.49-.17-12.66-.4-12.64-.42-2.36-.1-12.81-.58-2.41-.11-15.1-.62-8.65-.37-3.37-.17-13.56-.67-13.11-.73-.39,0m397.44,229.2-1.56-12.74-1.12-9.14-.52-4L1028.73,698l-1.16-9.13-.71-6.87.19-11.74.08-2.87.2-9.51.21-12.39,0-2.19.21-10.51.16-8.69.15-7.46.29-11.09,0-1,.19-8.3.11-5,.09-4.2.3-11-3.21-3.39M945,648.24l-2.89.1-5,.21-.73,0-17.79.73-19.18.51-7.72.15-7.3.2-7.37.2h-.9l-8.3.18h-.28l-6.69.15M604,220.61l-24.24-2.29-1.74-.17-18.24-1.83-4.7-.24-5.58-.61-15.41-1.8-4.72-.57-1.31-.27-11.67-1.43-7-.86-8.77-1.09-9.15-1.24-7.61-1-3.24-.44-.5-.08-4.56-.83-13-1.77-5.59-.86-2-.33-2.77-.13-8.14-1.11h-.06l-3.69-.57-1.08-.37-3-.62-4.13-.64L429.81,211l-.91,6.69-2.69,17L423.6,251.5l-.91,6L421,268.21l-2.88,17.61-2.85,17.8-2.34,14.69-1.82,11.43-1.43,8.84,14.17,2.34,11.78,1.69,1.23.18h0l3.76.54,3.65.51,1,.15,12.21,1.63,4.11.6,20.82,2.8,8.67,1.05L506.78,352l12,1.42,14,1.7,3.41.4,23.9,2.45,8.73.84,23.33,2,12.53,1,5,.39,19.13,1.4.85.05,14.93,1-.55,8.9-.12,1.84-.59,9.07-.21,3.2-.77,12.19,17.05,1.06,2.31.12,15.06.8.53,0,14.52.7.41,0,14.68.58,11.95.43,3,.09L731,404l5.92.16,6.14.14,9.13.22,2.94.06,12,.2,12.09.16,2.95,0,9.11.07,6,0h12l12,0h.85M296.47,138.08l-.15-2.42,1.16-3.22-.15-3-.23-1.93,0-.12-.76-3.1.51-1.53.89-4,4.48-19.93,1-4.48.82-3.64L308.63,70l.53-2.31,6.3-27.06,1.18-5.16m830.24,467.33,5.65-3,1.62-.32,5.52-3.35,1.43-.24,1.14-3.8,2.56-.16,1.9-1.51.58-1,.11-2.65,1.21-1.13,2.32-1.21-.14-2.93,3.86-3.67.31-.21,1.07-.77,4.14-2.34,1-1.33,8-9.67m252.62-251.76-3.43-1.38-1-3.82-.08-.09-3-1.76-1.23-.61-.45-.24-.71-1-.23-.49-.19-.78-.42-4.78-3.09-8-5-16.57-4.6-14.6-.36-1.18L1413,140.76l-1-2.7m-7.37,12.55-.59,1.21,1.73,2.55-1.76,6,.2.59.93.9,1.12,1.39.61.76.11.17.64,1-.82,1.65.49,1.4-.28.78-.12.21-1.22,2.13-.1.16-.14.21-.34.44-.07.09-.78.58-.53,0L1402.1,175l-1.71,1.08-1.7,1.05-.12.12-.08.07-.82,1.48-.08.35v.22l.8,2.81.46.61.41.33-.09,2,.6.43-.46,1.4-.67,2.63.8.67-.15,1.9-1.08,1.77.34,1.86,0,1.51-.78,1.76-.47.32-.6,1.28.31.86-.38,2,.36.42-1.21,1.58.27,1.55.73,5.61.49,0,0,1,.56.35-.11,3.06.1,2.58.75,1.88-.25,2.21.6,2-1.49,1.58.31,1.41-.53,1.51.6,1,.79,1,2.81,2.26m-20,29.52,2.4,13.32.83,4.85,1,5.61.43,2.47,2.46,2.26L1385,296,1383.1,298l2.74,3.53M842.31,528.37l15.12-.25,5.89-.12,7.89-.2,7.52-.18h.54l12.34-.37,2.3-.07,6.79-.24,10.59-.43.83,0,12.53-.56,6.21-.22,1.2,0,7.84-.42,9.54-.54,5.82-.31,9.93-.57.75,0,1.1,0,2.5,3.53.27.36.18,2.79-.3.8-.19.31-3.06,2.69-4.33,7.53,2.24-.15,9.25-.66,7.33-.48m61-209,7.78-.75,7.72-.8,4.22-.45,7-.71,3.4-.36,9.51-1.1,2.47-.26,9.6-1.13.76,2.18,10.47-1.61,1-.15,12.34-2,3-.53,8-1.35M1136,561.53l5.45-.64,3.51-.44,1.95-.26,10.93-1.59,1.85-.29,10.57-1.67M987.81,522.31l-.56,1.24-.71.63-.58-.39-.24-1.3M415,683.81l5.33-38,1.7-12.22,2.08-15,2.76-19.85,3.88-27.94,1.84-13.28,5-36.43,4.84-34.85,2.39-17,1.95-13.86,1.31-9.5,1.2-12.21,1.07-7.69,1.05-6.44.2-1.35.93-6.35,1.17-8.46.64-4.58.78-5.69L460,358.34l1.64-12.13m879,11.35-9.09,1.94-2.56.56-.17,0-8.63,1.81-5.71,1.19-5.57,1.16-5.7,1.15-6.36,1.26-.26,0L1280,369.84l-6.42,1.21-1,.19-11.27,2.08-3.22.59L1246,376.12l-2.23.4-7.58,1.34-4,.69-13.33,2.22-2.59.42-1.38-8.4-.3-1.87-.82-5-1.35-8.34-.46-2.73-.93-5.62-1.22-7.4-.31-1.68-1.26-7.85,0-.28-2.05-12.38-.06-.38-2-12.17-.72-4.44m220.85-47.9,2.75,9.61.76,2.89,1.94,7.88-.64,0-.44.52,0,.55.37.34.09.69.26.46,0,.3-.28.44-.1.58-.29.11M415.24,303.6l-11.79-1.84L388,299.27l-1.4-.23-1.87-.48h0l-5.42-.94-6.59-1.14-17.72-3-.75-.12-8.51-1.45-.81-.14-2.18-.38-.3-.06-2.05-.49-1.7-.43-6.62,34.42-6,30.58-1.42,7.32-2.44,12.58-5.82,30-.72,3.63-2.81,14.71-3.7,18.85-4,21-1.05,5.46-1.1,5.77-.14.7-1.11,6.36-.68,3.53L300,491.46l-3.55,4.8-.38.43-.15.09h0l-1.7,0-.55-.06-.14,0-.36-.28-.24-.25-.65-1-.2-.59,0-.29,0-.08-.05-.27-.34-.85-.83-1.18-.38-.36-3.56-1.05-1.62-.33h-1.72l-3.13.74-.28.15-.38.34,0,.23-.36,3.42-.76,10-.34,6.14.37,4.33.25,2.06,0,1-.2,4.28,0,.78-.15.7-.26.83-2.62,4.38m322.53-239L597,304.17l-1.81,21.41-.92,10.67-.39,4.7-.5,6-1.19,13.77m277.4,406.53-2.05-1.17-1.11-2.73,2.66-2.18.22-1.73,3.5-4.87,0-6.76-.91-5.52,1.17-1,.12-.3v-.18l-.43-2.19-.84-1-.09-.09.34-1.22,4.3-8.09.54-2.35-.11-11.11-1.39.37-.31-1.82-.21-1.14-.89-3.9-2.75-4-3.22-3.38-1.49-9-4.17-4.67-1-7.57-.15-6.89-.23-10.56-.12-6.62-.11-4.86-.18-8.85-.21-9.89-.7-.58-.54-.22-2.82-.57-1.63.24-.42,0-.15.13-2.82,1.43-1.56-.85-.43-.28-1.19-.76-.19-.26-.23-.51-.23-.6L840,627l-3.6-1.47-5-4-3.39-2.9-1.84-.62H826l-.1.05h0l-.62.94,0,.05v.12l.11.23v0l0,.3,0,.36-.15.35-.17.16-.77.5-.23,0-.43,0-.84.11h0l-2,.09-1.08-.09-2.87-.39-.11-.09-.11-.19v-.21l.09-.25V620l-.31-.78-.22-.1-.94,0-2.12,1.1-2.43,1.27-2.49.93-1.41-.25-1.68-.34-.39.05-.62,0-3.26.27-1.47.34-.25.85-.18.85v.09l0,.09-.08.27-.07.24,0,0,0,0-.27.29,0,0-.53.23-.6.16L793,626.74l-.28-.39-1.26-1.71-.38-.12-.34,0-1.49.28h0l-.27-.19-3-2,0-.1,0-.16,0-.44.1-.56-2.9,1.31h0l-1.41.24-2.73-.84-.29-.2-.48-.54-1.47-3-.28.16L772,626l-.13.18-.3.24-.41.13-.47-.06-.4-.14-1.57-2.56,1-3.16-2.08-1.12-4.13,3.61-1.7-.45-.25-.17-.18-.21,0-.06-.08-.18-.57-2.62-2.23.6-1-.73-3-2-1,1.25L752,620.16l-1.45,1.14-.9.27-.35,0-2.55-1.17-.32-.29.74-1.62.25-1.89-1.08-.42-1,.24h-.66l-1.23-.36h-.05l-.07-.08-.5-1-1.75-2.88-4.48-1.41-1.11-.25-.56.32-1.16,1.47-1.55,1.39,0,0h0l-.82-.3-1.37-2.2-.66-.56-.64-.42-.29,0-2.63.81-1.88-.08-2.66-.65-2.67-1.59-.44-.21-2.66-.21-1.16,0-.54,0-1.07-.24-.59-.19-.37-.1v0l-.5-2.72,0-.76,0-.8v0L710,601l-1.43-.77-1.27-.69L706,601.77v0l0,.06h0l-.22.09-1-.09-.94-.89-.72-.42-.44-.18-1.37-.16-.32-.05-.15.06-1.12,1.41h-1.36l-.88-.21-2-1.91-.72-.85-1.5-1.94L689,594.63l.19-6.52.42-10,.23-5.36.36-8.45.29-6.93.38-9.24.26-6.15.57-15.66-15.16-.68-11.39-.57-3.67-.18-15-.86-11.4-.72-3.64-.24L608,521.44M789.89,196.22l-16.28-.17-18.35-.33-.72,0L737,195.17l-6.87-.25-17.43-.66-4-.18-15.13-.74h-.3l-5.56-.28-.55,0H687l-2.93-.15-2.22-.12-7.1-.4-2.5-.13-1.42-.09-3.06-.18-3.7-.23-3.51-.21-3-.18-.4,0-.24,0-23-1.59-1.31-.1-25.6-2,1-11.67.79-9.07.29-3.5,2-23.93.21-2.34,1.77-20.74,1.09-13.61.7-8.45L616,81.61"
                                 fill='none' stroke="#f8f9f9" strokeWidth={1.5} />
                         </g>
-                        <g id="countiesOverlay" style={{ transition: 'opacity 0.5s'}} >
+                        <g id="countiesOverlay" style={{ transition: 'opacity 0.5s' }} >
                             <g id="O_Alaska">
                                 <path className={styles.countyOverlay} id="b02185"
                                     d="M164,695.06l2.39-2.4,1.79-1.19.6,1.19-1.19.6h1.19l6-1.79,5.38-6.59,4.79,2.4v1.2l-1.8,1.79v1.8l1.8-.6,1.2-3,1.19-1.2,1.8,1.79.6,2.4,1.79.6.6-1.2,3-.6h4.79l.59.6-1.19,1.79v.6l3.59.6-.6,1.79h2.39l3-1.79,6.58-.6,4.19,1.2h1.8l1.79.6.6.59H225l3-.59h3.59l4.19,1.2,1.2-.61,2.39-1.79.6-.6,1.2-1.19,4.19.59,9.57,3,3,9.58,1.8,6-24.54,6,1.2,6.58-4.79,1.2-12.57,2.4h-.6l-28.12,3h-6.59v-1.2H179V728h-4.79l-4.79.6h-3.59v-1.19H164V728h-5.39l-1.2-.59h-.6V728h-2.39l-.6-1.19h-3V728h-1.2l-8.38-.59v2.39h-4.19l-3.59-1.8-1.8-2.39,1.2-3.59.6-4.19,4.19.6,5.39-.6,1.79-.6,3.59-4.19,1.8-5.38,3.59-5.39,2.39-2.4,1.8.61,2.39-1.2,3.6-4.19"
@@ -10887,7 +10538,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M560.7,396.81l.11-.31.71-1,1,.11.21-2,.81.05.15-.87,1.09.1-.09.87-.62,0-.1.71-.49-.05-.26,1.86-1.44.67-1-.09"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="O_bonnecticut">
+                            <g id="O_Connecticut">
                                 <path className={styles.countyOverlay} id="b09001"
                                     d="M1384.66,282.2l-.83-4.85.71.15.22.26,1.37,2.88.49.81.23.4.6,1,1.13-.9.54.64,1.19.38h.36l0-.08,1,.36,2.06.67,4.56,3.22-.09,1.7-.32.74-.06.28.08,1.67.07.16.42.26-1.77.48-4.43,3.35-6.08,5.17-.15.28-.08.38-2.74-3.52,1.91-1.95,3.45-3.56-2.46-2.26-.43-2.47-.95-5.61"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -19269,8 +18920,8 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                     </g>
                 </g>
             </svg>
-            {(tooltip.visible && props.selectedLegend != 'Dairy Farms') && (<Tooltip {...{ x: pos.x, y: pos.y, info: tooltip.data, name: tooltip.name, stateCases: getStateCases(tooltip.data, props.dairyData), selectedLegend: props.selectedLegend }} />)}
-            {(sTooltip.visible && (props.selectedLegend == 'Dairy Farms' || (!tooltip.visible && props.selectedLegend == 'All Cases'))) && (<STooltip {...{ x: sPos.x, y: sPos.y, name: sTooltip.name, stateCases: getStateCasesFromName(sTooltip.name, props.dairyData) }} />)}
+            {(tooltip.visible && props.selectedLegend != 'Dairy Farms') && (<Tooltip {...{ x: pos.x, y: pos.y, info: tooltip.data, name: tooltip.name, stateCases: utils.getStateCases(tooltip.data, props.dairyData), selectedLegend: props.selectedLegend }} />)}
+            {(sTooltip.visible && (props.selectedLegend == 'Dairy Farms' || (!tooltip.visible && props.selectedLegend == 'All Cases'))) && (<STooltip {...{ x: sPos.x, y: sPos.y, name: sTooltip.name, stateCases: utils.getStateCasesFromName(sTooltip.name, props.dairyData) }} />)}
         </div>
     );
 }

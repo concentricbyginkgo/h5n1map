@@ -40,24 +40,8 @@
     z-index: 2;
 }
 
-.disableChildPointerEvents {
-    pointer-events: none !important;
-}
-
 .childOpacity path {
     opacity: 1;
-}
-
-.outlineOpacity path {
-    opacity: 1
-}
-
-.overlayOpacityOn path {
-    opacity: 1;
-}
-
-.overlayOpacityOff {
-    opacity: .5;
 }
 
 .countyOverlay:hover {
@@ -65,4 +49,10 @@
     stroke-width: 1;
 }
 
-    
+.outlineOpacity path {
+    opacity: 1 !important;
+}
+
+.noOutlineOpacity path {
+    opacity: 0 !important;
+}
