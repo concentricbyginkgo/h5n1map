@@ -7,11 +7,6 @@ Adjustments to the filter buttons
     Add small text with the last data update
     Add hover state on desktop with very faint gray background to make it clear they are buttons
     
-Map:
-    On all cases, Dairy farms can you add an outline to those states?
-        This means that the overlay of at least the dairy farm'd states should be full opacity so the outline applies
-        But, when hovering over a specific county, we need the overlay at 0 opacity EXCEPT for the county being hovered over
-
 on bottom right can you add two buttons so it is clear there is a zoom function?
 
 add dates to sTooltip  

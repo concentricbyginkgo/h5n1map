@@ -118,24 +118,38 @@ export default function Selector(props) {
     // console.log('Selector:');
     // console.log(props);
 
+    // remove all cases from the legend options
+    // and put in its own ul
+    const LegendOptions = props.LegendOptions.filter(option => option !== 'All Cases');
     return (
-        <ul className={styles.selector + ' borderBox fontS'}>
-            {props.LegendOptions.map((option, index) => {
-                return (
-                    <li key={index}
-                        onClick={() => props.setSelectedLegend(option)}
-                        className={option === props.selectedLegend ? styles.active : styles.inactive}>
-                        {icons[option]}
-                        <h3>{option}</h3>
-                        {option === 'Wildlife' && props.selectedLegend === 'Wildlife' ?
-                            <Subselector
-                                selected={props.selectedWildlife}
-                                setSelected={props.setSelectedWildlife}
-                                options={props.WildlifeOptions}
-                            /> : null}
-                    </li>
-                );
-            })}
-        </ul>
+        <div className={styles.selectorContainer}>
+            <ul className={styles.selector + ' borderBox fontS'}>
+                <li key={0}
+                    onClick={() => props.setSelectedLegend('All Cases')}
+                    className={props.selectedLegend === 'All Cases' ? styles.active : styles.inactive}>
+                    {icons['All Cases']}
+                    <h3>{'All Cases'.replace(/ /g, '\n')}</h3>
+                </li>
+            </ul>
+            <span className={styles.seperator}>Filters</span>
+            <ul className={styles.selector + ' borderBox fontS' + ' ' + styles.legendOptions}>
+                {LegendOptions.map((option, index) => {
+                    return (
+                        <li key={index}
+                            onClick={() => props.setSelectedLegend(option)}
+                            className={option === props.selectedLegend ? styles.active : styles.inactive}>
+                            {icons[option]}
+                            <h3>{option.replace(/ /g, '\n')}</h3>
+                            {option === 'Wildlife' && props.selectedLegend === 'Wildlife' ?
+                                <Subselector
+                                    selected={props.selectedWildlife}
+                                    setSelected={props.setSelectedWildlife}
+                                    options={props.WildlifeOptions}
+                                /> : null}
+                        </li>
+                    );
+                })}
+            </ul>
+        </div>
     );
 }

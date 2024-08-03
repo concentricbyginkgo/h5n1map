@@ -1,5 +1,6 @@
-.selector {
-    position: absolute; /* pinned to the right of the screen */
+.selectorContainer {
+    position: absolute;
+    /* pinned to the right of the screen */
     right: 0;
     top: 0;
     margin-top: 3.5%;
@@ -8,6 +9,44 @@
     margin-left: 60vw;
     font-family: IBM Plex Mono;
     text-align: center;
+}
+
+.seperator {
+    margin-top: 10px;
+    margin-right: auto;
+    margin-left: auto;
+    font-size: .6em;
+    display: table;
+    white-space: nowrap;
+    &:before, &:after {
+      border-top: 1px solid #0c0a10;
+      content: '';
+      display: table-cell;
+      position: relative;
+      top: 0.6em;
+      width: 18%;
+    }
+    &:before { right: 5.5%; }
+    &:after { left: 5.5%; }
+}
+
+.legendOptions {
+    margin-top: 8px;
+}
+.legendOptions li {
+    position: relative;
+}
+.legendOptions li::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 10%;
+    width: 80%;
+    border-top: 1px solid #0c0a10;
+}
+
+.legendOptions li:first-child::before {
+    border-top: none;
 }
 
 .active {
@@ -51,13 +90,20 @@
 
 .selector li {
     cursor: pointer;
-    padding: 5px;
+    padding: 4px;
+}
+
+.inactive:hover {
+    background-color: #e4e4e4;
 }
 
 .selector li h3 {
     display: block;
     margin-left: auto;
     margin-right: auto;
+    white-space: pre-wrap;
+    /* Add this line */
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .selector li svg {
@@ -65,6 +111,7 @@
     margin-left: auto;
     margin-right: auto;
     transform: translateX(4px);
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .dairyTransform {
@@ -72,28 +119,49 @@
 }
 
 .poultryTransform {
-    transform: translateX(7px) !important;
+    transform: translateX(6px) !important;
 }
 
 .humanTransform {
-    transform: translateX(8px) !important;
+    transform: translateX(6px) !important;
 }
 
 
 @media (max-height: 500px) {
     /* convert to a horizontal list */
 
-    .selector {
+    .selectorContainer {
         display: flex;
     }
 
+    .selector {
+        display: flex;
+        flex-direction: row;
+        margin-right: 10px;
+    }
+
     .poultryTransform {
-        transform: translateX(3px) !important;
+        transform: translateX(8px) !important;
     }
 
     .humanTransform {
+        transform: translateX(8px) !important;
+    }
+
+    .dairyTransform {
         transform: translateX(0px) !important;
     }
 
+    .seperator {
+        display: none;
+    }
+
+    .legendOptions {
+        margin-top: 0px;
+    }
+
+    .legendOptions li::before {
+        display: none;
+    }
 
 }
