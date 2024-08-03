@@ -45,7 +45,16 @@ function textD(info) {
 }
 
 
-function renderTextComponent([name, sourcd, formattedEarliestDate, formattedLatestDate], stateCases) {
+function renderTextComponent([name, sourcd, formattedEarliestDate, formattedLatestDate], stateCases, selectedLegend) {
+
+    // remove everything from sourced that is inot selectedLegend, unless selectedLegend is 'All Cases'
+    if (selectedLegend != 'All Cases') {
+        for (let source of Object.keys(sourcd)) {
+            if (source != selectedLegend) {
+                delete sourcd[source];
+            }
+        }
+    }
     
     return (
         <div style={{ zIndex: 99999999999, whiteSpace: 'nowrap' }}>
@@ -54,7 +63,7 @@ function renderTextComponent([name, sourcd, formattedEarliestDate, formattedLate
                 {Object.keys(sourcd).map((source) => (
                     <li key={source}>{source}: <b>{sourcd[source]} Cases</b></li>
                 ))}
-                { stateCases > 0 ? <li>{name.split(',')[1].trim()} Dairy: <b>{stateCases} Cases</b></li> : null }
+                { stateCases > 0 && selectedLegend == 'All Cases' ? <li>{name.split(',')[1].trim()} Dairy: <b>{stateCases} Cases</b></li> : null }
             </ul>
             <p style={{ fontSize: '0.7em' }}>{formattedEarliestDate} - {formattedLatestDate}</p>
         </div>
@@ -134,7 +143,7 @@ export function Tooltip(props) {
                     fill="#F8F9F9" stroke="#0c0a10" strokeWidth="0.5" />
             </svg>
             <div className={styles.textContent} style={{ zIndex: 2, position: 'absolute', transform: 'translate(30px, -50%)' }}>
-                {renderTextComponent(tooltipInfo, props.stateCases)}
+                {renderTextComponent(tooltipInfo, props.stateCases, props.selectedLegend)}
             </div>
         </div>
     );

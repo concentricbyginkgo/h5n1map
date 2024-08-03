@@ -1,27 +1,15 @@
-all: 
-    key dot outlines
 
-state and county:
-    key gradient
+Adjustments to the filter buttons
+    make all of them more narrow. They should take up less space
+    Separate all cases button
+    Add "Filters" text
+    Add lines between the filter buttons
+    Add small text with the last data update
+    Add hover state on desktop with very faint gray background to make it clear they are buttons
+    
+Map:
+    On all cases, Dairy farms can you add an outline to those states?
+        This means that the overlay of at least the dairy farm'd states should be full opacity so the outline applies
+        But, when hovering over a specific county, we need the overlay at 0 opacity EXCEPT for the county being hovered over
 
-state coloring:
-    on shared: only color counties that have no other color, and color with one hue
-    on both: outline the state
-
-point:
-    make point mode lmao
-
-fonts:
-    title: active grotesk medium, 29.3 pt size. 32.2 pt line spacing
-        Bird Flu (H5N1)\nU.S. Tracker
-
-    key: 
-        dot title: active grotesk medium, 13 pt size. 20.2 pt line spacing
-        title: active grotesk medium, 18.9 pt size. 29.4 pt line spacing
-        subtitle: active grotesk medium, 13 pt size. 20.2 pt line spacing
-        numbers: ibm plex mono, 13 pt size. 20.2 pt line spacing
-
-    selector: ibm plex mono, 11 pt size. 12 pt line spacing
-    subselector: active grotesk medium, 13 pt size. 20.2 pt line spacing
-
-match colors!
+on bottom right can you add two buttons so it is clear there is a zoom function?
