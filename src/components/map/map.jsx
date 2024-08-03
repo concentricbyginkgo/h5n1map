@@ -37,7 +37,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         setSTooltip({
             visible: true,
             name: event.target.id.replace('O_', ' '),
-            data: utils.getStateCasesFromName(event.target.id.replace('O_', ' ').replace('_', ' ').trim(), props.dairyData)
+            data: utils.getStateCasesFromName(event.target.id.replace('O_', ' ').replace('_', ' ').trim(), props.dairydata)
         });
     }, []);
 
@@ -45,7 +45,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         setSTooltip({
             visible: true,
             name: event.target.id.replace('O_', ' '),
-            data: utils.getStateCasesFromName(event.target.id.replace('O_', ' ').replace('_', ' ').trim(), props.dairyData)
+            data: utils.getStateCasesFromName(event.target.id.replace('O_', ' ').replace('_', ' ').trim(), props.dairydata)
         });
         setStateOutlineState(event.target.id.replace('O_', ' ').replace('_', ' ').trim());
     }, []);
@@ -89,7 +89,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
             document.getElementById('countiesOverlay').style.pointerEvents = 'auto';
             setoffFix(props.selectedLegend);
         } else if (offFix == 'All Cases' && props.selectedLegend != 'All Cases') {
-            utils.removeOutlines(props.dairyData);
+            utils.removeOutlines(props.dairydata[0]);
             utils.removeStateEventListeners(stateMouseEnterNoOpac, stateMouseLeaveNoOpac, stateMouseMove);
             setSTooltip({ visible: false, name: '' });
             setStateOutlineState('');
@@ -98,19 +98,18 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         }
 
         if (props.selectedLegend == 'All Cases') {
-
-            utils.addOutlines(props.dairyData);
+            utils.addOutlines(props.dairydata[0]);
             utils.addStateEventListeners(stateMouseEnterNoOpac, stateMouseLeaveNoOpac, stateMouseMove);
             setoffFix('All Cases');
             setStateOutlineState('All');
-            utils.allOutlineFix(props.dairyData, stateOutlineState);
-            utils.setFillsTo(utils.allColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
+            utils.allOutlineFix(props.dairydata[0], stateOutlineState);
+            utils.setFillsTo(utils.allColoringC(props.dairydata[0], props.max), props.allData, props.max, props.color);
         } else if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Dairy Farms' && props.selectedLegend != 'Human') {
             utils.setFillsTo(utils.countyColoringC(props.selectedLegend), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Dairy Farms') { // this is different because dairy data is state level instead of county level
             utils.addStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove);
             setoffFix('Dairy Farms');
-            utils.setFillsTo(utils.stateColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
+            utils.setFillsTo(utils.stateColoringC(props.dairydata[0], props.max), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Wildlife') { // this is similar, but we need to check the sub legend
             utils.setFillsTo(utils.wildlifeColoringC(props.selectedWildlife), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Human') {
@@ -257,7 +256,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
     useEffect(() => {
         if (props.selectedLegend == 'All Cases') {
-            utils.allOutlineFix(props.dairyData, stateOutlineState);
+            utils.allOutlineFix(props.dairydata[0], stateOutlineState);
         }
     }, [stateOutlineState]);
 
@@ -18940,8 +18939,8 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                         </g>
                     </g>
                 </svg>
-                {utils.tvis(tooltip, props.selectedLegend) && (<Tooltip {...{ x: pos.x, y: pos.y, info: tooltip.data, name: tooltip.name, stateCases: utils.getStateCases(tooltip.data, props.dairyData), selectedLegend: props.selectedLegend }} />)}
-                {utils.svis(sTooltip, tooltip, props.selectedLegend) && (<STooltip {...{ x: sPos.x, y: sPos.y, name: sTooltip.name, stateCases: utils.getStateCasesFromName(sTooltip.name, props.dairyData) }} />)}
+                {utils.tvis(tooltip, props.selectedLegend) && (<Tooltip {...{ x: pos.x, y: pos.y, info: tooltip.data, name: tooltip.name, stateCases: utils.getStateCases(tooltip.data, props.dairydata), selectedLegend: props.selectedLegend }} />)}
+                {utils.svis(sTooltip, tooltip, props.selectedLegend) && (<STooltip {...{ x: sPos.x, y: sPos.y, tool: sTooltip, stateCases: utils.getStateCasesFromName(sTooltip.name, props.dairydata)[0] }} />)}
             </div>
         </div>
     );

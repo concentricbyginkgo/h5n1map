@@ -107,6 +107,17 @@ export function Tooltip(props) {
 export function STooltip(props) {
     let width = 200;
     let height = 110;
+
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+
+    if (props.tool.data[1][0] != null && props.tool.data[1][1] != null) {
+        var formattedEarliestDate = props.tool.data[1][0].toLocaleDateString('en-US', options);
+        var formattedLatestDate = props.tool.data[1][1].toLocaleDateString('en-US', options);
+    } else {
+        var formattedEarliestDate = 'N/A';
+        var formattedLatestDate = 'N/A';
+    }
+    
     return (
         <div className={styles.tooltip} style={{ left: props.x + 'px', top: props.y + 'px', width: width + 'px', height: height + 'px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 278.9 140.52`} style={{ zIndex: 1, position: 'absolute', width: '100%', height: '100%' }}>
@@ -116,10 +127,11 @@ export function STooltip(props) {
             </svg>
             <div className={styles.textContent} style={{ zIndex: 2, position: 'absolute', transform: 'translate(30px, -50%)' }}>
                 <div style={{ zIndex: 99999999999, whiteSpace: 'nowrap' }}>
-                    <h3>{props.name.replace(/_/g, ' ')}</h3>
+                    <h3>{props.tool.name.replace(/_/g, ' ')}</h3>
                     <ul>
                         <li>Dairy Farms: <b>{props.stateCases} Cases</b></li>
                     </ul>
+                    <p style={{ fontSize: '0.7em' }}>{formattedEarliestDate} - {formattedLatestDate}</p>
                 </div>
             </div>
         </div>

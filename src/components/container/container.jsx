@@ -37,15 +37,26 @@ function getDairyData(allData) {
     let dairyData = allData['']['Dairy Farms'];
 
     let dairyD = {};
+    let dairyDates = {};
 
     for (let line of dairyData) {
         let abbrev = line.split(',')
         abbrev = abbrev[abbrev.length - 2];
 
         dairyD[abbrev] = dairyD[abbrev] === undefined ? 1 : dairyD[abbrev] + 1;
+        
+        if (dairyDates[abbrev] === undefined) {
+            dairyDates[abbrev] = [extractDate(true, line.split(',')), extractDate(true, line.split(','))];
+        } else {
+            let date = extractDate(true, line.split(','));
+            if (date > dairyDates[abbrev][1] ) {
+                dairyDates[abbrev][1] = date;
+            } else if (date < dairyDates[abbrev][0]) {
+                dairyDates[abbrev][0] = date;
+            }
+        }
     }
-
-    return dairyD;
+    return [dairyD, dairyDates]
 }
 
 function getMax(allData, selectedLegend, selectedWildlife, WildlifeOptions, Maxes) {
@@ -57,7 +68,7 @@ function getMax(allData, selectedLegend, selectedWildlife, WildlifeOptions, Maxe
             return Maxes[selectedWildlife];
         }
     } else if (selectedLegend == 'Dairy Farms') {
-        let dairyD = getDairyData(allData);
+        let dairyD = getDairyData(allData)[0];
 
         return Math.max(...Object.values(dairyD));
     }
@@ -195,7 +206,7 @@ export default function Container() {
         <div className={styles.container}>
             <LoadingOverlay loading={loading} />
             <div className={styles.bg}>
-                <Map setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} color={selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} max={max} dairyData={getDairyData(allData)} />
+                <Map setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} color={selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} max={max} dairydata={getDairyData(allData)} />
             </div>
             <div className={styles.fg}>
                 <Title />

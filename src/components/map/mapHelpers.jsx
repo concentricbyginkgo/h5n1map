@@ -55,7 +55,7 @@ export function hoverListenerConstructor(cData, setTooltip, parentRef, overlay, 
             name: pretty(cData),
             data: cData
         });
-        setS('');
+        //setS('');
     };
 }
 
@@ -319,12 +319,12 @@ export function getStateCasesFromName(name, dairyData) {
         }
     }
     if (stateAbbrev == null) {
-        return 0;
+        return [0, new Date(0)];
     } else {
-        if (stateAbbrev in dairyData) {
-            return dairyData[stateAbbrev];
+        if (stateAbbrev in dairyData[0]) {
+            return [dairyData[0][stateAbbrev], dairyData[1][stateAbbrev]];
         } else {
-            return 0;
+            return [0, new Date(0)];
         }
     }
 }
