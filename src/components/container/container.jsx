@@ -160,7 +160,7 @@ export default function Container() {
         <div className={styles.container}>
             <LoadingOverlay loading={loading} />
             <div className={styles.bg}>
-                <Map className={styles.map} setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} color={selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} max={max} dairyData={getDairyData(allData)} />
+                <Map setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} color={selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} max={max} dairyData={getDairyData(allData)} />
             </div>
             <div className={styles.fg}>
                 <Title />
