@@ -16,7 +16,7 @@
 .tooltip svg {
     width: 200px;
     height: 200px;
-    fill: white;
+    fill: #F8F9F9; /* EFF8B8 */
     position: absolute;
     top: 0;
     left: 0;

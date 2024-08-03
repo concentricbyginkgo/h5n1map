@@ -84,7 +84,7 @@ function addEventListenersToID(id, cData, setTooltip, parentRef, setPos) {
     if (element && overlay) {
         const hoverListener = hoverListenerConstructor(cData, setTooltip, parentRef, overlay);
         overlay.addEventListener('mouseenter', hoverListener);
-        overlay.addEventListener('mouseleave', () => setTooltip({ visible: false, name: ''}));
+        overlay.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '' }));
         overlay.addEventListener('click', () => {
             //console.log(`Clicked on ${cData.name}`);
             console.log(pretty(cData));
@@ -135,7 +135,7 @@ function mix1channel(rgb1, rgb2, ratio) {
 }
 
 function whiteToColorGradient(value, color, max, min = 1) {
-    const white = '#ffffff';
+    const white = '#F8F9F9';
     const ra = .3;
     const wr = Math.round(mix1channel(parseInt(white.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), ra));
     const wg = Math.round(mix1channel(parseInt(white.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), ra));
@@ -150,12 +150,15 @@ function whiteToColorGradient(value, color, max, min = 1) {
 
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
-function allColoringC() { // constructor for all coloring
+function allColoringC(dairyD, maxD) { // constructor for all coloring
+
+    stateFill(dairyD, maxD);
+
     return function allColoring(datum, max, color) {
         let colors = [];
         let sources = [];
         for (const source of Object.keys(datum)) {
-            if (source != 'name' && datum[source].length > 0) {
+            if (source != 'name' && source != 'Human' && datum[source].length > 0) {
                 sources.push(source);
                 // we have one color for each source
                 colors.push(color[source]);
@@ -184,24 +187,29 @@ function countyColoringC(selectedLegend) { // constructor for county coloring
     }
 }
 
-function stateColoringC(dairyD, maxD) { // constructor for state coloring   
+function stateFill(dairyD, maxD) {
     for (let key of Object.keys(dairyD)) {
         for (let stateI of states) {
             if (stateI.abbreviation == key) {
                 let statename = stateI.state.replace(' ', '_');
                 if (document.getElementById(statename)) {
                     for (let child of document.getElementById(statename).children) {
-                        child.setAttribute('fill', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
-                        child.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
+                        child.setAttribute('fill', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
+                        child.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
                         // get the overlay by the id of the child
                         let overlay = document.getElementById(child.id.replace('c', 'b'));
-                        overlay.setAttribute('fill', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
-                        overlay.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#519a8f', maxD));
+                        overlay.setAttribute('fill', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
+                        overlay.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
                     }
                 }
             }
         }
     }
+}
+
+function stateColoringC(dairyD, maxD) { // constructor for state coloring   
+
+    stateFill(dairyD, maxD);
 
     return function stateColoring(datum, max, color) {
         for (const source of Object.keys(datum)) {
@@ -328,7 +336,7 @@ function getStateCasesFromName(name, dairyData) {
 
 function addStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove) {
     for (let stateG of document.getElementById('countiesOverlay').children) {
-        stateG.classList.add('disableChildPointerEvents');
+        //stateG.classList.add(styles.disableChildPointerEvents);
         stateG.addEventListener('mouseenter', stateMouseEnter);
         stateG.addEventListener('mouseleave', stateMouseLeave);
         stateG.addEventListener('mousemove', stateMouseMove);
@@ -337,17 +345,50 @@ function addStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove
 
 function removeStateEventListeners(stateMouseEnter, stateMouseLeave, stateMouseMove) {
     for (let stateG of document.getElementById('countiesOverlay').children) {
-        stateG.classList.remove('disableChildPointerEvents');
+        //stateG.classList.remove(styles.disableChildPointerEvents);
         stateG.removeEventListener('mouseenter', stateMouseEnter);
         stateG.removeEventListener('mouseleave', stateMouseLeave);
         stateG.removeEventListener('mousemove', stateMouseMove);
     }
 }
 
+function addOutlines(dairyData) {
+    for (let key of Object.keys(dairyData)) {
+        let stateAbbrev = key;
+        for (let stateI of states) {
+            if (stateI.abbreviation == key) {
+                let statename = stateI.state.replace(' ', '_');
+                let element = document.getElementById("O_" + statename);
+                if (element) {
+                    element.classList.add(styles.outlineOpacity);
+                    element.style.filter = 'url(#outline)';
+                }
+            }
+        }
+    }
+}
+
+function removeOutlines(dairyData) {
+    for (let key of Object.keys(dairyData)) {
+        let stateAbbrev = key;
+        for (let stateI of states) {
+            if (stateI.abbreviation == key) {
+                let statename = stateI.state.replace(' ', '_');
+                let element = document.getElementById("O_" + statename);
+                if (element) {
+                    element.classList.remove(styles.outlineOpacity);
+                    element.style.filter = 'none';
+                }
+            }
+        }
+    }
+}
+
+
 export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}
     const [tooltip, setTooltip] = useState({ visible: false, name: '' });
     const [pos, setPos] = useState({ x: 0, y: 0 });
-    const [sTooltip, setSTooltip] = useState({ visible: false, name: ''});
+    const [sTooltip, setSTooltip] = useState({ visible: false, name: '' });
     const [sPos, setSPos] = useState({ x: 0, y: 0 });
     const svgRef = useRef(null);
     const dotRef = useRef(null);
@@ -362,27 +403,45 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
     const [gradients, setGradients] = useState([]);
 
     const stateMouseEnter = React.useCallback((event) => {
-            for (let child of event.target.children) {
-                child.style.opacity = 1;
-            }
-            event.target.style.filter = 'url(#outline)';
-            setSTooltip({
-                visible: true,
-                name: event.target.id
-            });
-        }, []);
+        // for (let child of event.target.children) {
+        //     child.style.opacity = 1;
+        // }
+        event.target.style.filter = 'url(#outline)';
+        event.target.classList.add(styles.childOpacity);
+        setSTooltip({
+            visible: true,
+            name: event.target.id.replace('O_', ' ')
+        });
+    }, []);
+
+    const stateMouseEnterNoOpac = React.useCallback((event) => {
+        setSTooltip({
+            visible: true,
+            name: event.target.id.replace('O_', ' ')
+        });
+    }, []);
 
     const stateMouseLeave = React.useCallback((event) => {
-            for (let child of event.target.children) {
-                child.style.opacity = null;
-            }
-            event.target.style.filter = 'none';
-            setSTooltip({ visible: false, name: ''});
-        }, []);
+        // for (let child of event.target.children) {
+        //     child.style.opacity = null;
+        // }
+        event.target.classList.remove(styles.childOpacity);
+        event.target.classList.remove(styles.outlineOpacity);
+        event.target.style.filter = 'none';
+        setSTooltip({ visible: false, name: '' });
+    }, []);
+
+    const stateMouseLeaveNoOpac = React.useCallback((event) => {
+        // for (let child of event.target.children) {
+        //     child.style.opacity = null;
+        // }
+        setSTooltip({ visible: false, name: '' });
+    }, []);
+
 
     const stateMouseMove = React.useCallback((event) => {
-            setSPos({ x: event.clientX, y: event.clientY });
-        }, []);
+        setSPos({ x: event.clientX, y: event.clientY });
+    }, []);
 
     useEffect(() => { // listens for changes in main legend, wildlife and dairy farms are special cases
         if (offFix == 'Dairy Farms' && props.selectedLegend != 'Dairy Farms') {
@@ -395,11 +454,23 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
             setoffFix('All Cases');
         } else if (offFix == 'Human' && props.selectedLegend != 'Human') {
             resetFix();
+            document.getElementById('counties').classList.remove(styles.disablePointerEvents);
+            document.getElementById('countiesOverlay').classList.remove(styles.disablePointerEvents);
+            setoffFix(props.selectedLegend);
+        } else if (offFix == 'All Cases' && props.selectedLegend != 'All Cases') {
+            removeOutlines(props.dairyData);
+            removeStateEventListeners(stateMouseEnterNoOpac, stateMouseLeaveNoOpac, stateMouseMove);
+            setSTooltip({ visible: false, name: '' });
+            resetFix();
             setoffFix(props.selectedLegend);
         }
+
         if (props.selectedLegend == 'All Cases') {
+            addOutlines(props.dairyData);
+            addStateEventListeners(stateMouseEnterNoOpac, stateMouseLeaveNoOpac, stateMouseMove);
             setoffFix('All Cases');
-            setFillsTo(allColoringC(), props.allData, props.max, props.color);
+            console.log('All Cases max: ' + props.max);
+            setFillsTo(allColoringC(props.dairyData, props.max), props.allData, props.max, props.color);
         } else if (props.selectedLegend != 'Wildlife' && props.selectedLegend != 'Dairy Farms' && props.selectedLegend != 'Human') {
             setFillsTo(countyColoringC(props.selectedLegend), props.allData, props.max, props.color);
         } else if (props.selectedLegend == 'Dairy Farms') { // this is different because dairy data is state level instead of county level
@@ -411,6 +482,8 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         } else if (props.selectedLegend == 'Human') {
             //reset fills to base color and draw dots
             resetFix();
+            document.getElementById('counties').classList.add(styles.disablePointerEvents);
+            document.getElementById('countiesOverlay').classList.add(styles.disablePointerEvents);
             setoffFix('Human');
         }
     }, [props.selectedLegend]);
@@ -481,10 +554,10 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
                     const hoverListener = circleListenerConstructor(datum, setTooltip, parentRef, circle);
                     circle.addEventListener('mouseenter', hoverListener);
-                    circle.addEventListener('mouseleave', () => setTooltip({ visible: false, name: ''}));
+                    circle.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '' }));
                     circle.addEventListener('mousemove', (event) => {
                         setPos({ x: event.clientX, y: event.clientY });
-                    });                    
+                    });
                     circle.addEventListener('click', () => {
                         console.log(`Clicked on ${cData.name}`);
                         console.log(pretty(datum));
@@ -509,6 +582,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
             .on('zoom', (event) => {
                 g.attr('transform', event.transform);
                 setTooltip({ ...tooltip, visible: false });
+                setSTooltip({ ...sTooltip, visible: false });
             });
 
         svg.call(zoom);
@@ -9883,7 +9957,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                 fill='none' stroke="#f8f9f9" strokeWidth={1.5} />
                         </g>
                         <g id="countiesOverlay" >
-                            <g id="Alaska">
+                            <g id="O_Alaska">
                                 <path className={styles.countyOverlay} id="b02185"
                                     d="M164,695.06l2.39-2.4,1.79-1.19.6,1.19-1.19.6h1.19l6-1.79,5.38-6.59,4.79,2.4v1.2l-1.8,1.79v1.8l1.8-.6,1.2-3,1.19-1.2,1.8,1.79.6,2.4,1.79.6.6-1.2,3-.6h4.79l.59.6-1.19,1.79v.6l3.59.6-.6,1.79h2.39l3-1.79,6.58-.6,4.19,1.2h1.8l1.79.6.6.59H225l3-.59h3.59l4.19,1.2,1.2-.61,2.39-1.79.6-.6,1.2-1.19,4.19.59,9.57,3,3,9.58,1.8,6-24.54,6,1.2,6.58-4.79,1.2-12.57,2.4h-.6l-28.12,3h-6.59v-1.2H179V728h-4.79l-4.79.6h-3.59v-1.19H164V728h-5.39l-1.2-.59h-.6V728h-2.39l-.6-1.19h-3V728h-1.2l-8.38-.59v2.39h-4.19l-3.59-1.8-1.8-2.39,1.2-3.59.6-4.19,4.19.6,5.39-.6,1.79-.6,3.59-4.19,1.8-5.38,3.59-5.39,2.39-2.4,1.8.61,2.39-1.2,3.6-4.19"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -9971,7 +10045,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M207.67,809.38h-.6l-.6.6v.6l-2.4.59v1.2h-1.19l-2.4.6H195.1l-3,.6h-9v-1.2l-9.57.6v1.2h-4.79v1.19H158.6l-.6-.59v-1.2l.6-1.79h-1.2V807l.6-4.79.6-1.8h.6v-3.58h.59v-3.6L161,792h2.4l1.19-1.2v-1.2h1.2V786h-1.2v-9.57h1.2v-2.4H167v-4.79h.6v-3.59h-1.2v-6H170v-2.39h6v-5.39h4.79v2.39h2.39v-2.39h2.4l1.19,1.19v1.2l2.4-.6v-3.59h3.59l-.6-1.2,2.39-1.19h1.19l.61-2.4-.61-3.59-1.19-1.2h-2.39V737l-2.39-2.4v-1.2h-1.2v-3h1.8l28.12-3h.6l12.57-2.4,4.79-1.2-1.2-6.58,24.54-6,10.17,35.31-1.19,1.8v1.79l-1.8,2.39-1.8.6-1.79,1.8h-.6l-.6,3.59-1.79,1.2-.6,1.19-.6,1.2,1.2,1.79-1.2,1.8v.6h-2.39l-.6-4.19.6-1.2-3,.6-6.59,2.39-.6-.59-1.19-1.8h-.6l-1.2-1.19v-1.2l-1.2-.6-1.19.6L240,760.9l-1.2,1.2H236.4l-.6,1.2-6,1.2h-.6l1.79,7.78v.6h1.2l2.4,3h.59l-7.18,1.2-9,1.2-2.39,4.79-1.8-.6h-1.2l-1.79,1.79.59,2.4L211.26,789l-3.59.6.59,3.59,2.4.6v1.79l-2.4,6.59.6,6-.6,1.2h-.59"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Alabama">
+                            <g id="O_Alabama">
                                 <path className={styles.countyOverlay} id="b01069"
                                     d="M1119.33,693.62l9.82-.89-.32.93-.21.91.42,2.48.3.71.26.15h.26l.22.06,1.42,1.56.22.4.32.7.88,2.54-14.47,1.76-.23-2.78-.49-4.29-3,.51-3.72.39,1.06-2.66.17-.15.7-.23.5,0,.47,0,1,.24.77.21,1.35.12.46,0-.17-1.4,2.06-.22-.12-1"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -10173,7 +10247,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1127,666.32l.08,2.62-1.38,7.52.51.68-.28-.24-.5-.16h-.17l-.15.09-.78,1-.46,1.36-.16.27-5.92.51.33,3-9.81,1.13,1.68-9.44,0-.28.17-.85,1.35-2.64,2.32-.87,2.41-.81-.19-1.28-.26-3.06.48-.31,4.48-.56.94,1.1.11.31,1.22,1.28.2.09,3.8-.49"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Arkansas">
+                            <g id="O_Arkansas">
                                 <path className={styles.countyOverlay} id="b05017"
                                     d="M942.32,628.8l.4,1.12h0l1.48,1,1.21.82.23.82-.35.7-1.51.44,1.47,4.2,1,1.8.76.8.09,2.67v0l-.92,3.81,0,0-.85,1-.24.27-2.88.11-5,.2-.72,0-.55-13.46-.19-6.14,3-.15.16,1.05.79.49,2.14-.06.46-1.58"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -10399,7 +10473,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M891.68,637.38l12-.06.42.11,2.18,1.17.27,1.09,0,.09.88.69.56,0,1.28-.27.85-.75-.07.23.07.37,3.82,2,2.57,2,2.23,5.37-19.19.51-7.71.16-.11-12.66"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Arizona">
+                            <g id="O_Arizona">
                                 <path className={styles.countyOverlay} id="b04001"
                                     d="M442.45,486.24l-4.83,34.85-6.87,49.71-3.88,27.94-8.65-1.17-4,2.31-.24.2-.61,1.22-4.28,1.81-2.87,1.79-2.93-.66-1.74-1.63.86-5.79,1.07-1.4,2.31-13.14,3.7-24.4,2.44-15.34,1.45-7.64.74-5-4.86-.73,6.91-46.62,26.29,3.73"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -10446,7 +10520,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M301.68,592.86,296.1,623l-3,16.11-.49-.3-39.4-23.68,1-4.22.08-.13.26-.1.5.11,1.25-1.15,1.19-1.73,3.07.24,4.07-2.53,1.27-1.78.26-.9.28-2.3-.87-2-.09-.09-.08-.11,4.21.84,3,.5,2.94-15,8.87,1.67-.58,3,17.86,3.37"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="California">
+                            <g id="O_California">
                                 <path className={styles.countyOverlay} id="b06015"
                                     d="M83.07,226.83l9.65,3,7.58,2.1-.84,1.39-1.15,1.5-1.77.17-2.49,2.21-2,9.17.23.81.24,2.26-.15.43-1.23,1.41-.67.47-1.43-.42L88,250l.54-1.81-2.87-.93-4.5-1.32.44-2.93.1-2,0-3.92v-.33l-.06-.42-.14-.45.61-5.77.89-3.3"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -10622,7 +10696,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M151.87,246.83l14.18,4,4.65,1.25h0l9.18,2.44,1,.25,7.23,1.83L181,284.24l-33.77-9-2.9-.77,2.29-8.36,3.19-11.83-.13-.07,0-.11,1.33-4.92.24-.85.68-1.54"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Colorado">
+                            <g id="O_Colorado">
                                 <path className={styles.countyOverlay} id="b08083"
                                     d="M474.85,467.71l-1.2,1.06-2,5.08-4.3,3-.21.3L464.84,481l-3.69,6.66-.37,1-18.33-2.45,2.4-17,4.15-4.66,16.6,2.2,3.14.35,2.39.13,3.72.46"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -10814,7 +10888,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M560.7,396.81l.11-.31.71-1,1,.11.21-2,.81.05.15-.87,1.09.1-.09.87-.62,0-.1.71-.49-.05-.26,1.86-1.44.67-1-.09"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="bonnecticut">
+                            <g id="O_bonnecticut">
                                 <path className={styles.countyOverlay} id="b09001"
                                     d="M1384.66,282.2l-.83-4.85.71.15.22.26,1.37,2.88.49.81.23.4.6,1,1.13-.9.54.64,1.19.38h.36l0-.08,1,.36,2.06.67,4.56,3.22-.09,1.7-.32.74-.06.28.08,1.67.07.16.42.26-1.77.48-4.43,3.35-6.08,5.17-.15.28-.08.38-2.74-3.52,1.91-1.95,3.45-3.56-2.46-2.26-.43-2.47-.95-5.61"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -10840,7 +10914,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1424.21,254.8l2.76,9.61.76,2.89-1.76.31-2.29.94-5.39.54-.89-.44-1.67-1-.53-.62,1.52-.38-.2-.88h1l-1-2.67-1.2.28-1-4.21.52-.17,2.42-.62-.68-2.36,1.08-.22,6.53-1.55.17.51"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Delaware">
+                            <g id="O_Delaware">
                                 <path className={styles.countyOverlay} id="b10001"
                                     d="M1344.58,372.11l4.69-1.68.33-1.22,1-.89,2.32,1.37,1.17,1.51.22.32.65,1.66.08.57-.22.95,1,3.5,1.53.71,1,.87.61,1.64-2,1.14-2.13,1.52-.45,1.05-.09.53-1.53,1.38-3.69,1-4-14.17-.49-1.72"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -10851,7 +10925,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1350.91,394.65,1349,388l3.7-1,1.52-1.39.1-.52.44-1.05,2.13-1.52,2-1.14.22.94.29.35,2.44,2,1.38,1.05,1,.37.72.14.54-.15.38-.29.06-.21.68,1.43,1.64,4.79,1.2,4.12.3,1.2-7.77,1.7-.4.09-1,.24-.43.07-.37.08h-.1l-1.37.26-.56.1-2.38.46h-.1l-1.87.32-.83.14-.31-1.11-.29-1-.37-1.32-.71-2.54"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Florida">
+                            <g id="O_Florida">
                                 <path className={styles.countyOverlay} id="b12005"
                                     d="M1123.23,719.56l1.26,12.73,1.12,9.63-3.15-1-.69-.28-.22-.14-.83-.59-1-1-6.63-3.84-.48-.27-.35-.19-.33-.19-.53-.26-1.14-.58-.48-.24-.4-.18-.46-.2-.57-.26-.5-.17-1.81-.67-.35-4.2.74-.82,3.25-1.41,9.17-.88,1.82-.2-.45-4.54,1.53-.17,1.53-.15"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -11054,7 +11128,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1240.25,698.93l1.11,6.91-2-1.61-.45-.06-3.41-.14-2.11.91-.31.17-.64.61-2.55,3.47-5.44,7.56-.48-3.07.16-2.42.16-2.4,0-2.34-.39-1.08-.92-1.2-.47-.71-.13-.72.26-3.79,3.27-1.91,1.28.86,4.67,1,3.52.39,1.86-.09,2.55-.31.46-.05"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Georgia">
+                            <g id="O_Georgia">
                                 <path className={styles.countyOverlay} id="b13241"
                                     d="M1170.25,556.69l-.61,2.79-2.6,2-1.88,3.42-.47,2.65-1.67-1-1.12.71-2-.1-2-2.63-2.24.45,2.12-6.31,1.86-.29,10.56-1.66"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -11531,7 +11605,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1165.27,568.51l7.27,4.47-1.75,2.26-5.4,1-.22.08-.57.35-1.85-.47,2.52-7.67"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Hawaii">
+                            <g id="O_Hawaii">
                                 <path className={styles.countyOverlay} id="b15001"
                                     d="M612.28,988.48l-1,1-2-1.53-5.11-2.05-1-1.54-.51-1,.51-8.19-3.58-8.7-2-2-1.54-2,.52-1.54,3.07-3.07,3.58-4.6v-2l-2.56-3.58-.51-2,.51-2,1-.51,3.07.51,1,1.53,4.6,2.06,5.64,1,6.13,2.56,4.1,2.56,2,2.55.51,4.1,2.56-.51,1,1.53v2l2.55,2,3.59,1.53-1,2-5.63,5.12-4.6,2.56-4.09.51-4.61,3.58-2.56,1.53-3.58,6.66"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -11548,7 +11622,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M563.16,914.79h.51l1,.51h.5l-.5-1,4.6-1,2,.51-1,2.05-3.07,2h-1.53l-6.14-1-7.16.51h-.52l1.54-4.09H554l7.17.51,1.53.51.51.51m12.28,3.58,1.53.51,2.56,4.1,5.12-2.56,3.06.51v.51l4.1,2.56,3.58,1,.51,1v2l-2,2-2.55,1-5.12,2.05H582.6l-1-.51-1-6.14-1.53-.51-1,1-3.07-1.54-2-2-.51-2,1-2,.51-1h1.54M562.14,923h3.58l2,1.53,1,1.54-.52,2-4.6,1.54-.51-2-.51-1.53-2-2v-.51l1.53-.51m15.34,10.23.51.51.51,2-4.09,1-1.53-.51,1-1.53,3.58-1.54"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Iowa">
+                            <g id="O_Iowa">
                                 <path className={styles.countyOverlay} id="b19163"
                                     d="M936.31,339l2.91-.15,1,1,1.55-.89,5.14-.26,1.58,1.2,3-.22-.4,3.82-1.36,1.83-1.55,1.81-4.95,2.45-2.11.54-.89,0-.38,0-.29-5-3,.12-.29-6.14"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -11803,7 +11877,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M946.06,317l1.54,1.78.08.11V319l-.14,1-.15.33v.23l.36.8,0,.05.73.92h0l.44.36.47.3,1.08.35,4.53,5.39-19.24,1.1-.5-9.21,6-.31-.16-3.08,4.89-.26"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Idaho">
+                            <g id="O_Idaho">
                                 <path className={styles.countyOverlay} id="b16043"
                                     d="M422.4,206.82l1.18,1.16,2,3.94,1.09,3.15.28.83,2,1.85-2.69,17-9.08.69-.09.11-.1,0-3.73-.67-.27,1.25-3.41-.56-3.26-2.12-3.47-.59.24-1.5-4.44-.79.51-3,3,.52.58-2.83,2.92.35,1.63-1.29.51-2.24.38-2.22,1.84-1.75,2.26-.56,2.18.35.89-5.24,4.23-4.86,2.79-1.05"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -11937,7 +12011,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M426.26,234.78l-2.61,16.76-1.85-1.39-2.07-2.65,0-.35-.36-.6-3.89-.65,1.72-10.43,9.08-.69"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Illinois">
+                            <g id="O_Illinois">
                                 <path className={styles.countyOverlay} id="b17183"
                                     d="M1027.84,378.26l.91,11.58.78,9.32-10.75,1-1.16-12.14.35,0-.62-6.12-.33-3,10.78-1.13,0,.5"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -12236,7 +12310,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M959.9,311.71l.88,10.88-10.23.72-1.08-.34-.48-.31-.44-.35,0,0-.74-.92,0,0-.36-.81v-.22l.15-.33.15-1,0-.14-.07-.1L946.08,317l-.07-.06h0l-2.2-1.53-1.73-.9-.6-.43-.21-.21-.06-.18,0-.2v-.07l.36-.62,5.51-.27,12.84-.74"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Indiana">
+                            <g id="O_Indiana">
                                 <path className={styles.countyOverlay} id="b18127"
                                     d="M1039.35,333.47,1041,350.1l-.22.29-.75.42-.23-.06-2-1.28-1.41-.49-.53-.14-.29.06-1.49.86-.61.88-1.34-13.41,7.23-3.76"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -12504,7 +12578,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1042,331.48l7.79-.75,1.12,11.46-3.05.31-1.41,1.21-.54,2.05-.17.47-.46.86-.59.94-.78.5L1041,350.1l-1.67-16.63,2.63-2"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Kansas">
+                            <g id="O_Kansas">
                                 <path className={styles.countyOverlay} id="b20043"
                                     d="M821.3,405h.85v.33l.17.24,3.23,2.93,1.31.84.66.25.52.19.09,0h.13l1-.09.2-.08.16-.15,0,0,.92-1,2.24,2.82.22,1,.21,1-.56,1.26-.57.09-1.93,1.71-.11.12-.92,1.35-.32.45-1.32-.93-6.13-.05L821.3,405"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -12796,7 +12870,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M803.41,405.07h5.94v12.27l-.06,3.19-2.86,0-3.69-.07h-5.45l0-15.35h6.08"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Kentucky">
+                            <g id="O_Kentucky">
                                 <path className={styles.countyOverlay} id="b21105"
                                     d="M995.11,511.69l8.66-.21.64,9.53-.31,0h-.21l-2.11-2.47-1.14-.43-6.6-1.6,1.07-4.86"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -13154,7 +13228,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                 <path className={styles.countyOverlay} id="b21007" d="M999.23,495.83l4,9.29-7.88.94-1-1.27-1.3-2.94,6.19-6"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Louisiana">
+                            <g id="O_Louisiana">
                                 <path className={styles.countyOverlay} id="b22103"
                                     d="M976.54,727.12l12.52.83,5,6.93.06,0,.19.19,1.88,3.81,0,.65-.28.71-.07.3,0,.18,1,1.82.29.57.66.77.22.25.08.05.11.08.07,0h.06l1.4-.09-2.92,1.2-.19-.13-1.68-.54-3-.24-1.86-1-4.74-.91-1.3-1.61-4.22-2.05-2.3,1-1.07-12.81"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -13348,7 +13422,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M982.1,750.75l-.16,3.57,2.21-.43,1.63,1.29-1.22,2.08-.56,2.35.33,1.14,1,1.31.6.7,1.21,2.07.16.66.44,5.24-1.5.51-1.85-.81-1.77.17-1.44-2.81.76-1,.18-.66,0-.35-.36-2.46-.08-.27-.32-.19-1-.24-.78,0,.44-1.36.18-.53.5-2.92-1.85-1.1-.93-1.43-.2-.58-.3-1.74-.08-1.21-.11-1.51,3.48.53Zm3.26,28.46,0,0,.84-.16.66-.74,1.76-1.36.26,0,.05.1,0,.1-.16.25-1.93,1.43-1.65,1.72-.28.29h0l.45-1.69"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Massachusetts">
+                            <g id="O_Massachusetts">
                                 <path className={styles.countyOverlay} id="b25001"
                                     d="M1457.66,253.07l.42-.07.52.37.74.41.67.19,1.65.09,1-.06,1.7-.51,1.05.4.87-1,1.72-1.1,1.31-.89,1.06-.6.27-.57.42-.26-.3-1-.48-1.26-.22-.69-.81-1.15-.42-.08-.24.49.13,1.42-.65-1.5-.78-2.62-.66-.77-.4-.28-.46-.18-.72-.17-.18.05-.34.19-.19.18-.15.25-.08.43,0,.19-1.44-.57-.09-.1.1-.36.26-.28.44-.24.43-.14.75-.08,1.21.07,1,.21.73.31.85.59.81.81,1,1.17.81,1.17,1.26,2.21.58,1.15.79,2.35.48,1.68.09.77-.26,1-.06,2.89-.54.24.21-1.47-.21-1.88-.06-.2-.12-.22-.65-.31-.31-.07-.18,0-5.13,2.77-.25,1.1-.72-.68-1.73.38-.16.56-1.7,1-.91,2.31-3.3,1.32-.88,1.09-1-.09.84-1.79-.7-3.37-.56-.59.55-.7-.55-.31.1-1.79,1.75-1.8"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -13392,7 +13466,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1415.5,231.47l.11.25,1.19,1,.51,1.36,1.78-.58L1419,233l3.07.46.42,2.72,1.14.14,0-.93,2.34-.55.39.73-.42,1.61.61.3.09,2-1.18.63.88.36-.78,1.54.62.38.53.65,1-.76,1.52-.48,0,2.16-1.71.86-.4,1,.21.55.69.63.81.27,1.19-.65,1,1,.74,4.89-7.47,2.29-.17-.51-6.53,1.55-1.08.22-.86.17-1.13-4.49-1.64.44-1.78-.38-.12-.44v-.27l.64-1.65-.4-2-1.54.44-.52-1.4-.73.23-.45-1.8.35-1.5-.5-1.5.78-1.19-.82-.6-.56-2.1.41-.62.56-.21-.49-1.58-1.08-.1-.7-1.92,8.89-1.93.75-.17"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Maryland">
+                            <g id="O_Maryland">
                                 <path className={styles.countyOverlay} id="b24001"
                                     d="M1272.65,371.31l1-.19.82,3-2.8,4.8-5.11.28-3.23-1.29-4.4,6.05-2.89-.65,2.13-9.3,3.22-.59,11.27-2.08"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -13466,7 +13540,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1344.31,394.67l3.27-1.76,3.33,1.73.71,2.53-1.27,2.24-.64.58-.56.32-.17.32-.84,5.43-.05,2.63-.84.78-1.06-.72-1.11-1.26.94-.45.58-.57-.8-1.24-.92-.07v1.36l-.77,1.26.78.92.22,1.78L1344,410l-.86,0-.24-1.12-1.65.14-.21.8,1.58.69-.49.63-1.34-.85-.45-.64-.7-.51-1-.32-.13-.1-.38-.68.73-.85-1.25-.18-1.14-2.24-1.51-1.71,1.82-.94.21-.9-1.61-1.12.44-1.32.16-.25.6-.52.24-.13,2.23-.63,1.07.77,3.1.25,1-3.6m.44,20-.06-.05,0,0-.24-.41-.19-.69-.2-1.45.38-.47.6-.14.91.74,0,.21.15.52-.14.69-.34.71-.9.32"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Maine">
+                            <g id="O_Maine">
                                 <path className={styles.countyOverlay} id="b23003"
                                     d="M1455.18,86.38l-1.82-5.9-20.93,6-7,2-.53-4.14,0-.11,0-.09.64-1.88,1.78-5.24,3.46-10,4.65-13.47,1.9-.16,2.25,0,.34.09.42.57.08.15-.17.23,0,0,0,.81,1.23,4,.35.32.2.09,3.66,1.2.94-.82,2.55-2.43,2.81-2.56,4.34-3.78.6-.34,1.14-.36,1.06-.09.43.09,2,.66,5.7,2.44,5.14,3.23.07.17L1480.49,83l4.79,15.48-.38.57,0,.34.77,3.46.41.34-5.27,3.1-4.52,2.61v.12l.06.18-1.67,1-1.76,1-.55-.09-1.65-5.61-.4-1.66-.75-2.69-.74-2.33-4.57-14.58-6.16,1.35-2.89.83"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -13516,7 +13590,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1432.43,86.47l1.45,6.14,3.4,11.67,1.64,1.86,2,3.7-1.84,4.15-1.7,1.63,3.78,2.41-.34,3.53,7.21,14.08,1.67,2.78,2.35-1.18,3.36-2.75,5.55,11.24-1.16.59-1.16-.79-1,.1-.15,1.89-1.16.59,0-.54-.18-.31h-.34l-3.38,1.7.13.37.28.58.43.45.33.09.83.61.12,1.53-.28.33-5.51.45-2.62.63-1.38-2.18-.91.39-2.69-5.64-2.27.79-1.31-2.73,1-.39-3.38-5.91-2.53,1.43-1-1.45-2.25.9-4.72-9.61-3.23-7,.2-.25,1.36-1.63,3.16-7.64,0-.56,0-1.46-.38-.29-.4-.18h-1.17l-.46-1.5-.39-1.64-.76-4.39.31-2.38.38-2.85v0l.27-.76.24-.37,0,0,.06,0,.77-.57,1.36-2.1-.28-2.24-.41-3.28,7-2"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Michigan">
+                            <g id="O_Michigan">
                                 <path className={styles.countyOverlay} id="b26053"
                                     d="M951.25,162.54l.63,0,.36,6,3-.17.2,3,9.1-.63.43,6,9.08-.66.6,8.22-1.72-.84-1.67-.56-1-.22-1.32-.27-17.56-3.61-2.47-.51-2.25-.47-4.93-6.05-2.76-1.51,1.61-1.31.48-.27,3.88-1.56,1.51-.42,1.31-.55.39-.24.75-.71,1.76-1.75.65-.92"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -13757,7 +13831,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M995.28,154.13l.42,5.11,1.22-.1.06,0,.25,2.95-3,.28.72,9-13.62,1.08-1.14-15,2.89-.35-.09-2.9,2.47-.51-.48,2.18,0,1.9,0,.2.28.67.32.66.57,0,.09-.25.4-.67,1.18-1.64,2.59-2.78,2.05-1.41.27-.09.26.14,2.28,1.55"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Minnesota">
+                            <g id="O_Minnesota">
                                 <path className={styles.countyOverlay} id="b27055"
                                     d="M922.68,266.57l.61,4.23,1.68,7.85-10,.48-3,.13-.56-12.16,11.25-.53"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -14007,7 +14081,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M887.22,268l6.1.3.44,11.71-2.65.09-12,.43-.62,0-.39-12.25h.09l9-.31"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Missouri">
+                            <g id="O_Missouri">
                                 <path className={styles.countyOverlay} id="b29143"
                                     d="M979.14,510.18l4.76-.67,5.92,8-2.17,4.86-.29,1.31-1,.5-.72-.54.09-1.08L986,522l.05-.09,0-.14.09-.34,0-.1v-.21l-.09-.38-.17-.4v0l-.18-.27,0,0-.06,0-.07-.05-.43-.12-.79-.12-.51.08-.17.1-.32.43,0,.06,0,.14,0,.16,0,.12,0,.11,0,.15,0,0,.3.65,0,0,.62.89.4,1.92,1.06,1.43v1.93l-1.23.41L983,526.08l-.55-.23-2,.36-2.06.8-4.29.27h-1.35l-.48-8.47,7.2-.41-.65-8.17.36,0"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -14347,7 +14421,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M989,504.21l5.33.57,1,1.28-1.05,3.5h0l-.77.44h0v.81h0l1.6.84L994,516.51l-.78.85-.38,1.65-1.28.1-1.78-1.66-5.92-8,5.13-5.3"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Mississippi">
+                            <g id="O_Mississippi">
                                 <path className={styles.countyOverlay} id="b28047"
                                     d="M1017.83,725.53l1.89,9.42-2.28.57-4.8,1.25-5.89,1.69-1.89-1.3-.69-9.6,3-.2.14-1.06,10.48-.77"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -14588,7 +14662,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1018.49,714.22l12.22-1,1.12,9.13-14.17,1.1-.47-6.12,1.53-.18-.23-3"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Montana">
+                            <g id="O_Montana">
                                 <path className={styles.countyOverlay} id="b30091"
                                     d="M616,81.65,615,94.29l-.69,8.45-13.64-1.19.28-3-3.22-.42.45-2.87-5-.47.29-3-1.53-.16.41-9,.3-3L616,81.65"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -14758,7 +14832,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M613.19,116.35l-1.78,20.74-2-.18-.14,1.52-6.89-.63-2.22-.19.55-6.05-2-.44.33-2.74-9.14-.86.3-3-6.09-.58.3-3,.26-2.68,1-.4.43-4.07.19-2.26,1.75.34h2.88l.5-.26.76-.57.62-.83,1.39-.56,9.92,2.49,4.63,2.69,4.49,1.56"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="North_Carolina" data-name="North Carolina">
+                            <g id="O_North_Carolina" data-name="North Carolina">
                                 <path className={styles.countyOverlay} id="b37043"
                                     d="M1151.75,553.62l2.57-.08,5.37,4.81-1.85.29-10.93,1.6-2,.25,2.64-4.64,4.15-2.23"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -15060,7 +15134,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1364.25,498.89l3-.84,2.07,2.87-.65.49-1.22,1.79-.08.17-.76,2,.11.41,0,.36-.15,1.13,0,.23-.13.26-1,1.65-1.74,1.9-.17.11-7.11.68H1356l-2.31-.28-1.85-.28-.47-.55-1-1.29-.89-1.65-.12-.42v-.15l.09-.15.32-.19,2.29-2.25-3.67-1.39-1.35-2.35,6.77-1.13,2.6-.29.23,2.65,2.63-.05.07-3.23.78-1,1.16.79,2.91,0m11.07,14.56.23.47-.52.29-.51.41-1.25,1-1.78,1.53-.78.69-.89,1-.41.61-.28.26-.09-.11,0-.14.44-1.24.5-.72,1.78-1.56,2.69-2.16.84-.37"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="North_Dakota" data-name="North Dakota">
+                            <g id="O_North_Dakota" data-name="North Dakota">
                                 <path className={styles.countyOverlay} id="b38017"
                                     d="M768.88,150.49l14.85.23.12,3,0,4.43,1,3.33.29.81-.46,7.61v2l-12-.09-9.73-.17.22-12.17-.58-.07.15-9.05,6.11.14"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -15216,7 +15290,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                 <path className={styles.countyOverlay} id="b38097" d="M768.61,135.42l13.87.15.82,6,.43,9.11-14.84-.23-.28-15.07"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Nebraska">
+                            <g id="O_Nebraska">
                                 <path className={styles.countyOverlay} id="b31045"
                                     d="M612.14,291.71l12.84,1,5.31.4-.54,7.54.34,2.05-.71,10.12-17.25-1.2-.91-.07.94-12.21-.22-1.37-.06-2.7.26-3.56"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -15470,7 +15544,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M648.39,294.36l-.32,6.54h.23l-.37,11,.45.05-.94,14.23.88.08-.24,3.08-1.52-.12-15.8-.92-.53,0,.19-2.64-1.21-.18.77-12.57-.61,0,.71-10.12-.34-2,.55-7.54,18.1,1.25"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="New_Hampshire" data-name="New Hampshire">
+                            <g id="O_New_Hampshire" data-name="New Hampshire">
                                 <path className={styles.countyOverlay} id="b33007"
                                     d="M1412.09,138.12l.94,2.7,5.18,15.62.37,1.18,4.59,14.6-.36,1.8-4.81,1-.53,3.69.31,1.87-.65.37-.9-2.36-.73-.41-.84-1.14-.68.23-1-1.07-.73-.2-2.47.77-.79-1.54-2.69-.45-2.51-1.88.52,0,.79-.58.06-.09.34-.44.14-.21.11-.16,1.21-2.13.12-.21.28-.78-.49-1.63.82-1.42-.64-1-.1-.17-.62-.76-1.12-1.38-.92-.91-.21-.59,1.76-6.26-1.72-2.33.59-1.22-.21-2.08.59-6.33,2-2.57.27-.19.52.27.22.43.11.13.79.39,1.28.09,1.08-.23.16-.13.59-2.33"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -15502,7 +15576,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1423.16,172.22l5,16.56,3.08,8.05-.56,1.35-.54,1-.36-1.26h-.66l-.59.91-.67,0-1-1.93-.69,1.63-2.68-.48-6.22-3.45-2.16-1.35-.55-1-1.38-3.16L1418,187l-1-5.31-1.76-2.68-1.2-1.74.68-.24.83,1.14.73.41.91,2.37.64-.38-.31-1.86.54-3.69,4.8-1,.36-1.8"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="New_Jersey" data-name="New Jersey">
+                            <g id="O_New_Jersey" data-name="New Jersey">
                                 <path className={styles.countyOverlay} id="b34025"
                                     d="M1375.59,323.11l.4.23.47-.84h1.16l1.42.12,1.4.65,1.36,0-.39-1.5-.3,0,0-.26-.44-.26V321l.14-.16.08-.1h.19l.35.16,1,1.27.58,2.36.2.82,0,.06.22,1.64.06.71,0,1.51-.07,5-1,.35-1-1.18-.57,1.23-.87.13-1.74.18-.22-.93-1.09-.78-3.73.74-3.06,4.08-1.36-1.82-1-1.38,1.36-1,1.57-1.86V332l-.14-.26,2.37-1.78,2.83-4.77-.13-2.06"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -15570,7 +15644,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1365.14,336.79l.41-1.39,3.2.89,1.36,1.82.51.7,6.16,8.85,1.41,6.1-.08.86-.37.63-1.58.41-1.18-.23-.65-.2-2.42-1.12L1370,352.2l-1.5-.78-.37-.19-2.6-1.78-1.7.88-2.19-3.63-3.9-2.58,1.69-2.47,2.87-2.43.36-1.13,1.07-.08,1.44-1.22"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="New_Mexico" data-name="New Mexico">
+                            <g id="O_New_Mexico" data-name="New Mexico">
                                 <path className={styles.countyOverlay} id="b35025"
                                     d="M599,624.35l-.6,6.4-1.35,15-2.26,30.56-.23,3-.73,0-1.66-.13-2.08-.16-1.53-.11-1.74-.14-11.72-.92,1.5-18.29-2.67-.2,1.24-15.52,1.41.11,1.24-15.09,1.27,0,.55-6,6.1.47,13.26,1"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -15671,7 +15745,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M478.23,518.65,489,520.07l9.83,1.14-.42,3.46-.46,4.17,17.87,1.91-.1,1-.06.24-.44-.15-1,0-2.47.26-.48,1-.95,3.6.19.34.28.15.52,0,.57,0,.17-.16.86.41L514,538l.42.49.4.9-2,19-3.23-.44-6.76-.76-4.64-.53-5.65-.67-6.58-.79-.8-3.16-2.06-.23,2.95-24.28-8.88-1.14,1-7.68m36.93,17.78-.06-.09-.69-.56.81.07-.06.58"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Nevada">
+                            <g id="O_Nevada">
                                 <path className={styles.countyOverlay} id="b32007"
                                     d="M313.45,285.41l3.17.5,3.84.77,6.71,1.52,5.51,1.09,6.09,1.2-6.62,34.42-6,30.59-5.36-1-16-3.38-5.9-1.2-6-1.29-5.17-1.2-8.16-1.71-4.32-.89-.08-15.45V326l.07-1,2.39-11.16-11-2.42-11.08-2.45,7.74-34.39,9.89,2.27,2.94.67,37.33,7.92"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -15724,7 +15798,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M205.09,260.9l13.74,3.46,14.66,3.37,29.61,6.73.19.08-10.5,46.68-5.89-1.31-2.3,3.69,1.2-5.16v-.22l-.21-.09-8.61-2,1.38-6-29.29-6.9.88-3.6-13.36-3.29-.51-.13.64-2.74,1.68-6.67.64-.69.65-1.56.93-3.73.93-6.14,2.29-9.12,1.24-4.68"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="New_York" data-name="New York">
+                            <g id="O_New_York" data-name="New York">
                                 <path className={styles.countyOverlay} id="b36019"
                                     d="M1360.48,162l0,.6,1,1,.25,1.27-.5,1.64.06,1.46,1.53,1.1-.18,2.72.13,2.43.2,1.36.43,1.47.41.34.71.42-3,1.05.1.65-.47,1.29-1.7,1.2-2.18,1.36-1.9.4-3.83,1.38-.86-2.49-.89-2.38-1.87-4.35-3.19-7.8-.61-1.64,3.65-1.05,6-1.53,6.74-1.87"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -15909,7 +15983,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1369.56,203.21l.9,1.76-.47,2.6-.14,1.42.25,2,.1.14.83.35v-2.34l1.64-.23.69,1.38,1.21.4.68,1.72,1.48,6.89,2.62,12.8-9,2.25.32-1.56.12-1.23-.11-2.4-.11-.66-2-6.57-.19-.3-2.54-6.33-.07-.49,0-.24.27-1.27.46-1.21,1.4-3.43.16-2.12.06-2.85,1.41-.52"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Ohio">
+                            <g id="O_Ohio">
                                 <path className={styles.countyOverlay} id="b39155"
                                     d="M1206.08,319.32l.06.38,2,12.38-12.46,2-1.22-7.44-.91-5.35,12.49-2"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -16175,7 +16249,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1094.46,328.09l10.47-1.6.33,3.33.57,0,.45,3.6.93-.19.14.82.26,2-12,1.51-.44-3.65-.72-5.81"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Oklahoma">
+                            <g id="O_Oklahoma">
                                 <path className={styles.countyOverlay} id="b40139"
                                     d="M649.45,506.69l13.56.68,3.37.17-.29,5.26h-.23l-.65,12.29-3.66-.19-15-.85-11.39-.72L636.34,506l13.11.72"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -16406,7 +16480,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M666.38,507.54l8.66.37,15.1.62,2.41.11-.62,14.41-.15,3.3-15.16-.68-11.4-.57.65-12.29h.23l.28-5.26"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Oregon">
+                            <g id="O_Oregon">
                                 <path className={styles.countyOverlay} id="b41007"
                                     d="M145.49,93.48l-3.58,12.32-3-.72-5.45-1.55-.07,0,0-.35-5.8-1.75,2-4.37-.68-1.5,2-.78.48-1.69,0-1.07.1-1.27.2-.68L131.39,87l.42-.35.61.17.8,1.61.86.84,1.13-.68,1.64,0,.82,1.22,2.94.34.5-.91,1.09-.39.12-.35,1.58.09.13.09.08,0,.09.16.36.63.26.82-.54,1.57,1,1.6.18.06"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -16516,7 +16590,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M141.91,105.8l-.71,2.37-2.88-1-.51.77,1.18,2.38,2.26,1.57-.15.78-3.66,1.55-1.36,1.91-.41-.07-.16.48.5.13-1.13,4.06-1,3.27-7.61-2.27-1.42,4.68,1.44.44-.35,1.08-6.63-2,.86-1.54.1-.18v0l.7-1.33,0-.09.19-.45.55-1.36,5.37-15.23.46-1.58.1-.64v-.23l0-1.84,5.8,1.75,0,.36.07,0,5.45,1.54,3,.72"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Pennsylvania">
+                            <g id="O_Pennsylvania">
                                 <path className={styles.countyOverlay} id="b42101"
                                     d="M1359.39,341.66l-1.69,2.46-2,3.71-1,1.49-.63-.86-1.19.16.3-1.87-1-.86,1.25-1.69-1.4-1.07.39-1.54,3.39.74,1.93-3.5,1.19.56.53,2.27"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -16719,7 +16793,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1339.17,339.14l1.5-.17,2.71,1.11.09.11.28.37,2.59,2,2.92.68-4.53,7.37.11,1.88-.42.2-.4.21-.37.23-.35.24-.32.27-.3.27-.27.3-.25.31-.23.32-.2.34-.19.35-.16.37-.14.38-.13.39-.1.4-.08.42-.26.07-9.09,1.95,1.54-2,.35-.92.41-1.54.27-1.9-.34-.94-.13-.62-.1-.89.7-3.54-.53-2.09,1.6-1.39,3.82-4.6"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Rhode_Island" data-name="Rhode Island">
+                            <g id="O_Rhode_Island" data-name="Rhode Island">
                                 <path className={styles.countyOverlay} id="b44003"
                                     d="M1437.2,264.19H1437l-.2.19-.31.22-.08.64-.29-.13-.37.32-.1.52.22.45-7.71,2.38-.39-1.48-.76-2.89,8.29-2.44.07-.05.2-.45-.07-.23.12-.43.29-.09.06-.19h.1l.35-.25,0-.11.38.15,0,.17.14.11.11.23.18.05-.07.15.12.29,0,.21.34.16.47-.09,0,.07-.35.27.14.65-.09.39.1.24,0,.29-.43-.18,0-.29-.2,0-.16,0-.12-.18-.13,0,0,.22-1,.1.21.75.15.08.37-.19.45.11Z"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -16736,7 +16810,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1428.11,268.77l7.71-2.37-.22-.46.1-.51.37-.32.29.13.09-.64.3-.22.2-.19h.24l.21.55.17.3-.15.13,0,.17.22,0,.14.19-.27.33.19.15.23-.07.07.24-.08.17-.6.43H1437l-.1.18.24.25.54.4.12.23.31.46.24.71-.11.33.13.5.16.25.07.28-.2.09,0,.38.21.16-.08.43-.45.47.34.81-.41,1,0,.45.09.37h-.15l-.23-.18-.48-.09v-.2l.21-.24.11-.29-.08-.21,0-.19-.14-.11-.12-.39-.28.09,0,.2v.91l-.06.2.11.25-.45.26-.2,0h0l-.56.24-.55.4-.74.3-.38.34-1.29.91-.2.37-.33.17-.26.06-.39.22-.39.07-.33.16-1.2.64-.28.21-.25.38-.18-.15-.24.1-.27.17-.07-.21.62-.23.13-.29v-.26l.36-.46-.06-.33-.31-.41-.06-.68-.32-.4-.07-.48.41-.54h.41l.12-.11-1.47-6m9.28,11,.21.58,0,.46.11.28.64.73-.28.25-.71.27-.5.36-.19-.18-.15-.94.25-.44.43.14.14-.19-.36-.42.09-.28-.25-.72Z"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="South_Carolina" data-name="South Carolina">
+                            <g id="O_South_Carolina" data-name="South Carolina">
                                 <path className={styles.countyOverlay} id="b45077"
                                     d="M1179.65,553l.91.5,4.51-1.31,0,2,1.27-.2,2,4.44.3.82.24,1.19-.14.17-7.39,5.66-1.66,2.61L1176,556.88l-1-.38.49-1.8.49-.77,3.68-.95"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -16876,7 +16950,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1190.5,546.49l4-.18.81,6.27.64,5.48.11.28,2.51,2-.71,3.23-.87,4.07.32,1.77-2,2.14-3.41-2.26-.4-1.12-.86-1-.49-1.13-.29-3.78-.19-1.14-1-.6.14-.17-.23-1.19-.31-.82-2-4.45-1.27.21,0-2-4.5,1.31-.91-.5,5-3.43,5.83-3.06"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="South_Dakota" data-name="South Dakota">
+                            <g id="O_South_Dakota" data-name="South Dakota">
                                 <path className={styles.countyOverlay} id="b46105"
                                     d="M634,189.74l23,1.59-1,16.49L655,223l-23.69-1.65.44-6.06.45-6.06,1.07-12.1h.18l.56-7.4"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -17069,7 +17143,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M657.06,191.32h.21l.4,0,3,.19,3.51.21,3.7.23,3.06.17,1.42.09,9.6.53,2.22.12,2.93.15h.2l.55,0,5.56.28h.31l.57,1.5,1.25-.2,0,1.13.86.3.58.44-.76,1.57,1,1.83.08,1.24.93.85-.52,1.34-.62.44-1.06-.4-.49.32-.27.52-.39,1.38-.4.89-1.1,1.4.92.84,1.86.14.71,1.1L669,208.56l-13-.78,1-16.49h0"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Tennesse">
+                            <g id="O_Tennesse">
                                 <path className={styles.countyOverlay} id="b47163"
                                     d="M1198,495.2l-1.08,1.34-1.06.32-.3,1-1.34,1.67-2.38,2.33-.77-.08-1.93,2.28-1.87-.46-1.23,1.11-1.29.17-.44-.12-1.39-1-1-.2-1.67.53-3.44.68-1.54.24-.57-.86,1.78-1.79,0-3.3,8.7-1.3,1.4-.21,2.69-.37,5.86-.84.2-.82,2.66-.32"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -17356,7 +17430,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1194.21,499.56l1.07,1.08v.1l-2.16,3.66.42.85,1.91,2,.93.79.5-.18-3.3,6.15-4.17-1.21-1.15-1.67-.65-1.07-2-.12.4-5.19,1.24-1.11,1.86.46,1.93-2.28.77.08,2.38-2.33"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Texas">
+                            <g id="O_Texas">
                                 <path className={styles.countyOverlay} id="b48037"
                                     d="M847.65,629.25l.23.6.22.51.19.26,1.19.76.43.28,1.57.85,2.81-1.43.15-.13.43-.05,1.63-.24,2.81.57.54.22.7.57.21,9.9-.25-.55-.61-.32-2.63-.42-.72.16-.92.32-.47.83.09.74.1.31-.06.11-4.46-.06-.91-1.15-2.33.19-1.29.71-2,.25-1-.19-.24-.2-.08-.34-2.79-2.07-.14-13.17,7.58,2.19"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -18081,7 +18155,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M744.67,883.8l10.58,1.88,2.7-1.12,1.24-1.54.15.08.13,1.79.72,2.76,0,2.6,1.41,2.86,3.33,3.2.07.09-.37,1.19-3.83.1-1.83,1.5-.13,1.87L756,900.2l-.45-.27-.43-.34-1.82-1.43-2.67-3-.11-.4-3.62-.63-2.41-.42.19-9.93m19.73-1.87h.53l.87,3.64.28,1.38.36,2.58.55,4.36-.14,0h-.09l-.26-.36-.28-2.36,0-1.07-.15-1.29-.31-2-.61-2.86-.36-1.11-.43-.9"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Utah">
+                            <g id="O_Utah">
                                 <path className={styles.countyOverlay} id="b49037"
                                     d="M449.31,433.69l-1.2,12.2-1.31,9.51-1.95,13.85-2.4,17-26.29-3.74-9.07-1.37-4.48-.88-7-1.06-18.18-2.86.85.08,2,.05.7-1.82,1.41,1.22.43-.77.51.33,1.48-1.7.59.67.82-.34,3.42.33.93-.32,1.95-1.69,1.15-2.63,1.11-1.39.22-.61-.95-.5.5-.58,2,1.24,1.34-.61.47-.74-.48-1.06.46-.36.72.26.46-1-.75-.17-.55-.75,1.09-.71,2.13.26-.82-.71.75-1.42,1.72-1,1-1.74,2.19-.77,1-1.82,1.07-1.83-.8-1.12,1.38,0,1.21-2.45,3.07.4,2.29-.18.12-1.72,2.41-1.89,1.49.52,2.14-3.61,2.48-1.16.8-.83.28-1.76,0-1.48-.84-2.61L423.14,434l.65-3.38-.5-.66,26,3.73"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -18170,7 +18244,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M339.78,452l.25-1.6,5.94,1.14,8.48,1.46-.06.26,14.08,2.45h.23l.14-.1,32.52,5.23-.75,1.42.82.71-2.13-.26-1.09.71.55.75.75.17-.46,1-.72-.26-.46.36.48,1.06-.47.74-1.34.62-2-1.25-.49.58.95.5-.22.61-1.11,1.39-1.15,2.63-1.95,1.69-.93.32-3.42-.32-.82.33-.59-.67-1.48,1.7-.51-.32-.44.76-1.4-1.21-.71,1.81-2-.05-.84-.07-30.87-5.2-9.82-1.75L339.78,452"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Virginia">
+                            <g id="O_Virginia">
                                 <path className={styles.countyOverlay} id="b51131"
                                     d="M1355.48,432.67l-2.65.79h0l-.12,1-.09.79-.12,2.42-.13,3.72v.5l.08,1,.17,1.1.73,1.73,1.56,2.39,0,.77.88-.23.2-.07-.4-1.4-.48-5.67,1-2.71,1.74-.67-.86-.72v-1.81l-.18-.12-.11-.26,0-.09.16-.11.22-.36-.15-1.42Zm5.36,2.18-1.4.63.56.63-.21,3.35-.7,2.08,1-1.52.9-4.34,0-.57Zm-2.26,7.28-.08,1.06.24.29.2-.36Zm.72,1.92-.79-.09-.47.91-.63,1.61-.59,1.85.07,0,.22-.19.2-.27,0-.08,1.21-1.86v0l.31-.54.28-.51Zm-2.27-4.46-.8.31-.39,2.59.45.23-.59,2.16.65,2.57.53-2.29v-1.5l.62-.56-1-.83Z"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -18569,7 +18643,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1361.13,467.74l-1.38.3-.09-.57.52-.19.52-.4,0,.42Zm-2.85-2.79.49,1.79,0,.82.44.59-.89.18-.36-.74-1.06-.71-.08.21.54.75.32.63-2.57.55-.92-4.2,1.23-.78.06-.58-.51-.5-.75-.15-1.09-1-1.88-.17-1.08-2,1,.21.23-1.14-.45-.45-.37-.54.2-1.14.35.23.58.79.48-.29-.84-.74-.08-.55h.66l1.25.26-.4,1.19h.33l-.14.66.45-.24-.13-1.06.38,0,.37.27.08.84.32-.08v-.39l.25-.35-.38-.19-.11-.46-.72,0-.1-.37.76-.27.4-.61.69-.16.82.23.2.55,1.2,2.87.92,1.71.95,1.44,1.12,1.73,1,2.06.36.86.26,1-.31.06-.25-.44-.14-.69-.3-.58-.16-.43-.75-1.11-.42-.47,0,.45-.12.42-.57-.55-.1-.71.47-.36-.51-.28-.61.27.06.9Z"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Vermont">
+                            <g id="O_Vermont">
                                 <path className={styles.countyOverlay} id="b50009"
                                     d="M1395.26,153.29l9.45-2.62-.59,1.21,1.72,2.33-1.76,6.27.21.58.92.91,1.12,1.38.62.76.11.18.63,1-.82,1.43.49,1.62-.28.79-.12.21-1.21,2.13-.1.15-.15.21-.34.45-.06.09-.79.57-.52,0-1.64,2.13-2.76-2.26.74-.65.79-1.61-1.72-1.46,1-2.62-2-.76,1.06-2.86-2.94-1.13-1-.38,1.58-3.6-1.54-.79-.15-3.65"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -18613,7 +18687,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1399.32,183.19l-.09,1.76.54.48-.45,1.29-.49,2.58.61.72-.17,1.82-1,1.94.41,1.77-.09,1.77-3.27-.46L1388,196l-2.88-.35-2-.17-.33-.52-.14-.54.63-2.61,1.56.21.45-2.93.23,0,.28-2.72.71.07.07-.41,3.12.51-.21-3.28,1.4.26,1.71.32,3.21-1.14,3.48.42"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Washington">
+                            <g id="O_Washington">
                                 <path className={styles.countyOverlay} id="b53047"
                                     d="M230.17,14.14,256.11,21,269,24.19l6.7,1.66-.71,3-2,8.41-.81-.18-1.33,5.83.52.17L270,48.91l-.18,0-2.91,11.84-.18.17-2.93-.23-.05-.67.63-.7.43-.62.14-.4-.08-.49-.62-.59-.27-1,.1-1.58-.32-.48-.37-.57-.88-.19-.43-.69-.66.12-.55.45-.64-.11-1.75.39-.55-.63-.61.29-.48.55-.4,1-1.6-.34-.61-1.07-.88-.2-.54-.36-.72.8-.43.1-.49.41h-.41l-1.35.89-.81-.14L248,54l.2-.76.71-1.06-.22-.57-.45.13-.58-.12-.22-.81-.67-.27-.18.57-.69-.22-2.18.64-.26.5.42.87-.1.69-.6.51-.09.27,0,.12.19.39-4.41-1.2.15-.67-.3-.64.13-.73-1.13-1.1.47-.57-1.1-1-.56-.07-.83-1.49-.52-.76-.77.07-.07-.58-.42-.32v-.92l.69-.7v-1l-.81-.23.16-.43-1.2-1-1-2.37-.7.09-.85-.79.8-1.1.07-.94-1.55-.87V33.73l1-.47-.5-.51.74-.44-.53-.5.27-.89-1.22-.16.45-.9.47-.23-.41-1.12-.92.39-.28-.32L228.44,27l.88-.81.39-.11.62.1.51-1,.83.22-.06-.76.71-.17-.49-1.07-.81-1.3.79-2.56-.45-.75.24-1.74.53-.36L232,16l-.55-.22-1.17.55-.86-1.6.75-.55"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -18732,7 +18806,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M229.34,30.77l1.22.16-.27.88.53.51-.74.43.5.51-1,.48V35.6l1.54.87-.06,1-.8,1.1.85.79.7-.09,1,2.36,1.2,1-.16.42.81.24v1l-.69.69v.93l.42.31.07.58.76-.07.53.76.83,1.5.56.06,1.1,1-.48.57,1.14,1.11-.13.72.3.65-.15.67,4.41,1.2.08.42v.27l-.17.33-1.35.68-.24,1.32-1.32.37-.3.93-1.12,1-2.29.06-.16-.06-.12-.2-.31-.31-.29-.14-1.5.19-.34.14-.22.15-.34.38-.19.65.26.93-.12.7-1,.87-.45,1.5-.87,1-.83.28-.58.77-.74,1.53-.17.5V70l.07,1.2.1.29.68.59.35.19,2.36,1.07.78,1.19,0,.19-.34,1-.31.84-.24.47-6.85-1.74-.63-.67-.47-.79-.54-.27-.54-.58-.36-.87-.72.67-.56,0-.13-1.26-1.95-.69-.27-.71-.67-.36,0-1-.41,0-.81-.82,0-.39-1.45-.25-1.41-.71.26-.82-.75-.53.15-.68-.52-.5-.2-1.14-1.45-1.31-.32-2,.24-2.08v-.75l1.87-.44.07-.25-.35-.53.26-.54L213,53.42l.77-.51.77-.81-1-.26-.73-.83.37-1-.41-.4.08-.75.34-.71.41-.64v-.31l.67-.69h.25l.69-.52-.52-1.45,3-.61.33.27,2-.85-.13-1.18,1.66-.19-.36-1.44-.58-.59.36-.39-.51-1.07-.41-1,.31-.65-1.22-1.39.35-.55.58.08.17-.62-.22-.63V33l1-1.11-.5-.84L221.4,30l2.26.33.1-.91.47.08.62.27.69-.27.24.39.34-.16,0-.42.75.18L227,30l-.15.54.45.52.69,0,.7-.34.66,0"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Wisconsin">
+                            <g id="O_Wisconsin">
                                 <path className={styles.countyOverlay} id="b55001"
                                     d="M964.21,250.09l.63,9.25.74,11.91-4.68.37-.17-.69-.76-.46-.58-1.21-.45-1.63L957,265.74l0-.31-1.09-1,0-.49-.76-1.24.38-.39.38,0,0-.7-.55-1.87-1-.33.15-.76-.45-.35-.25-2,.28-.9.73-.15.18-1.42.59,0,.3.31.29,0-.06-.76.48-.06,0-.42-.41.06-.08-.24.44-.25L956,252v-.19l.37-.17.13-.34,0-.62,4.59-.48,3.18-.15"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -18947,7 +19021,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M998.24,193.55l5.79,1.55.46.38,0,0,.06.06.74.91.24,6.32-2.41,5.2h3.49l1.24-1.29,1.42,1.25-1.57,5.25v0h0l.22.72.11.19,1.93,2h0l.63.11,1.12.18-.58,1.23-.2.63.14,2.52-1.09.21-2.08.46-.05-.81-4.6.32,0-1-4.38.2-.22-3-1.68.12-.29-3-2.93.23-.46-6.36-3,.16-.91-12.11,6.07-.34,2.91-.06-.16-2.36"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="West_Virginia" data-name="West Virginia">
+                            <g id="O_West_Virginia" data-name="West Virginia">
                                 <path className={styles.countyOverlay} id="b54003"
                                     d="M1282.73,373.11l.75.82,1.28-.48,1,0,1.3-.48,1-.13.13.92-1.18.49,1.18,1.85.78.42-.48,1.62-.23.49-1.43,2.18-.51.34-.17.37-1.24,3.23-.05.21-.07.74-6-3.27,1-7.66.06-.15,2.88-1.47"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -19114,7 +19188,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M1274.46,374.08l1.42.28.32,0,.94-1.74.7-1.11.19-.2.16-.06.9,0,1,.1,1,.37,1.22.88.46.5-2.89,1.48-.06.15-1,7.66-3.5-1.8-3.61-1.7,2.8-4.8"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="Wyoming">
+                            <g id="O_Wyoming">
                                 <path className={styles.countyOverlay} id="b56021"
                                     d="M562.28,335l16.3,1.48-.28,3.09,15.6,1.4-.5,6-1.19,13.76-23.32-2-8.74-.85L562.28,335"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
@@ -19185,19 +19259,19 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     d="M575.09,302.4l6.5.54-3,33.57L562.29,335l.2-3h.19l.75-7.35.39-4.87-.23-.07,1.12-12.08.73-6.13,4.91.38,4.74.47"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
-                            <g id="DC">
+                            <g id="O_DC">
                                 <path className={styles.countyOverlay} id="b11001"
                                     d="M1311.26,392.15l1.5-2.43,1.39.72,3,1.83-2.78,4.39-.2-1.74-.72-1.4-1.22-.54-1-.83"
                                     fill="#b3b3b3" stroke="#b3b3b3" strokeWidth={1} />
                             </g>
                         </g>
-                        <g id="dots" className={styles.dotsC} style={{ display: props.selectedLegend == 'Human' ? 'block' : 'none' }} ref={dotRef}>
+                        <g id="dots" className={styles.dotsC} style={{ display: props.selectedLegend == 'Human' || props.selectedLegend == 'All Cases' ? 'block' : 'none' }} ref={dotRef}>
                         </g>
                     </g>
                 </g>
             </svg>
             {(tooltip.visible && props.selectedLegend != 'Dairy Farms') && (<Tooltip {...{ x: pos.x, y: pos.y, info: tooltip.data, name: tooltip.name, stateCases: getStateCases(tooltip.data, props.dairyData) }} />)}
-            {(sTooltip.visible && props.selectedLegend == 'Dairy Farms') && (<STooltip {...{ x: sPos.x, y: sPos.y, name: sTooltip.name, stateCases: getStateCasesFromName(sTooltip.name, props.dairyData) }} />)}
+            {(sTooltip.visible && (props.selectedLegend == 'Dairy Farms' || (!tooltip.visible && props.selectedLegend == 'All Cases'))) && (<STooltip {...{ x: sPos.x, y: sPos.y, name: sTooltip.name, stateCases: getStateCasesFromName(sTooltip.name, props.dairyData) }} />)}
         </div>
     );
 }

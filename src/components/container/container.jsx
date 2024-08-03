@@ -16,11 +16,11 @@ const LegendDefault = 'All Cases';
 const WildlifeDefault = 'All Species';
 
 const keyColor = {
-    'Dairy Farms': '#519a8f',
-    'Poultry Farms': '#7653a5',
-    'Human': '#f7c242',
-    'Wild Birds': '#fc573e',
-    'Wildlife': '#8fa429',
+    'Dairy Farms': '#EFF8B8',
+    'Poultry Farms': '#7653A5',
+    'Human': '#C77BAB',
+    'Wild Birds': '#FC573E',
+    'Wildlife': '#519A8F',
 };
 
 const keyType = {

@@ -44,6 +44,14 @@
     z-index: 2;
 }
 
-.disableChildPointerEvents {
+.disableChildPointerEvents path {
     pointer-events: none !important;
+}
+
+.childOpacity path {
+    opacity: 1 !important;
+}
+
+.outlineOpacity path {
+    opacity: 1 !important;
 }

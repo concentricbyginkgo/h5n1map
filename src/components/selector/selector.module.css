@@ -12,7 +12,7 @@
 
 .active {
     background-color: #0c0a10;
-    color: white;
+    color: #F8F9F9;
 }
 
 
@@ -22,12 +22,12 @@
 }
 
 .inactive * {
-    background-color: white;
+    background-color: #F8F9F9;
 }
 
 
 .active svg * {
-    stroke: white !important;
+    stroke: #F8F9F9 !important;
 }
 
 .inactive svg * {

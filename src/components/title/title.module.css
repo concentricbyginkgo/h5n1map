@@ -5,8 +5,13 @@
     margin-top: 3.5%;
     margin-left: 2%;
     font-family: 'Aktive Grotesk', 'sans-serif';
-    font-weight: 500;
+    font-weight: 400;
     margin-right: 50vw;
+}
+
+.title h1 {
+    font-weight: 500;
+    color: #0c0a10;
 }
 
 /* hide if width OR height are small */
