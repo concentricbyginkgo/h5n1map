@@ -151,7 +151,29 @@
 }
 */
 
-@media (max-height: 500px) {
+@media (max-height: 500px) {   
+    .selector li svg {
+        transform: scale(0.8);
+    }
+
+    .selector li {
+        padding: 1px;
+    }
+
+    .selector li h3 {
+        font-size: .9em;
+    }
+
+    .iconContainer {
+        padding: 0px;
+    }
+    
+    .seperator {
+        display: none;
+    }
+}
+
+@media (max-height: 300px) {
     /* convert to a horizontal list */
 
     .selectorContainer {

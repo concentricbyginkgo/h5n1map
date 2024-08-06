@@ -21,14 +21,6 @@
     align-items: center;
     display: flex;
 }
-
-/* fix for ios 100vh issue */
-@supports (-webkit-fill-available: initial) {
-
-    .key {
-        margin-bottom: calc(-webkit-fill-available * 0.03) !important;
-    }
-}
   
 .disableCounties g * {
     pointer-events: none;
