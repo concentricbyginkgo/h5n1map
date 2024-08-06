@@ -1,5 +1,8 @@
 'use client';
 import React from 'react';
+
+import Div100vh from 'react-div-100vh';
+
 import styles from './container.module.css';
 
 import LoadingOverlay from './loading/loading';
@@ -208,7 +211,7 @@ export default function Container() {
             <div className={styles.bg}>
                 <Map setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} color={selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} max={max} dairydata={getDairyData(allData)} />
             </div>
-            <div className={styles.fg}>
+            <Div100vh className={styles.fg}>
                 <Title />
                 <Key max={max} keyColor={selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} keyType={selectedLegend == 'All Cases' ? keyType : keyType[selectedLegend]}
                     selected={selectedLegend == 'All Cases' ?  // if selectedLegend is 'All Cases' then show all the options
@@ -220,7 +223,7 @@ export default function Container() {
                             selectedLegend} // just the normal legend 
                 />
                 <Selector setSelectedLegend={setSelectedLegend} selectedLegend={selectedLegend} setSelectedWildlife={setSelectedWildlife} selectedWildlife={selectedWildlife} LegendOptions={LegendOptions} WildlifeOptions={WildlifeOptions} Dates={Dates} />
-            </div>
+            </Div100vh>
         </div >
     );
 };

@@ -7,20 +7,20 @@ export default function Key(props) {
     // console.log(props);
 
     return (
-        <div className={styles.key + ' borderBox dynaPad fontL'}>
-            { typeof props.keyColor === 'string' && props.selected != 'Human' ?
-                <h3>{props.selected}</h3> :
-                null
-            }
-            { typeof props.keyColor === 'string' && props.selected != 'Human' ?
-                <Scale color={props.keyColor} max={props.max} stateCounty={props.keyType} white={props.selected == 'Dairy Farms' ? '#EFF3C7' : '#F8F9F9'} /> :
-                <ul> 
-                    { props.selected == 'Human' ? <li key={0}><Dot key={0} color={props.keyColor} label='Human' outline={true} /></li> : 
-                    Object.keys(props.keyColor).map((key, index) => {
-                        return <li key={index}><Dot key={index} color={props.keyColor[key]} label={key} outline={props.keyType[key] != 'county'} /></li>
-                    }) }
-                </ul>
-            }
-        </div>
+            <div className={styles.key + ' borderBox dynaPad fontL'}>
+                { typeof props.keyColor === 'string' && props.selected != 'Human' ?
+                    <h3>{props.selected}</h3> :
+                    null
+                }
+                { typeof props.keyColor === 'string' && props.selected != 'Human' ?
+                    <Scale color={props.keyColor} max={props.max} stateCounty={props.keyType} white={props.selected == 'Dairy Farms' ? '#EFF3C7' : '#F8F9F9'} /> :
+                    <ul> 
+                        { props.selected == 'Human' ? <li key={0}><Dot key={0} color={props.keyColor} label='Human' outline={true} /></li> : 
+                        Object.keys(props.keyColor).map((key, index) => {
+                            return <li key={index}><Dot key={index} color={props.keyColor[key]} label={key} outline={props.keyType[key] != 'county'} /></li>
+                        }) }
+                    </ul>
+                }
+            </div>
     );
 }
