@@ -1,8 +1,7 @@
 .key {
     position: absolute; /* bottom left */
-    bottom: 0;
+    bottom: calc(100dvh * 0.03);
     left: 0;
-    margin-bottom: 3%;
     margin-left: 2%;
     font-family: 'Aktive Grotesk', 'sans-serif';
     font-weight: 500;
