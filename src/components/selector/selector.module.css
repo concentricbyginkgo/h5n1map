@@ -1,5 +1,5 @@
 .selectorContainer {
-    position: absolute;
+    position: fixed;
     /* pinned to the right of the screen */
     right: 0;
     top: calc(100% * 0.035);
@@ -151,7 +151,7 @@
 }
 */
 
-@media (max-height: 500px) {   
+@media (max-height: 500px) or (max-width: 450px) {
     .selector li svg {
         transform: scale(0.8);
     }

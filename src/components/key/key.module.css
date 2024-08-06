@@ -1,5 +1,5 @@
 .key {
-    position: absolute; /* bottom left */
+    position: fixed; /* bottom left */
     bottom: calc(100% * 0.03);
     left: 0;
     margin-left: 2%;

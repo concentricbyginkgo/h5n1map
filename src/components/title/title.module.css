@@ -1,5 +1,5 @@
 .title {
-    position: absolute; /* top right */ 
+    position: fixed; /* top right */ 
     top: calc(100% * 0.035);
     left: 0;
     margin-left: 2%;
