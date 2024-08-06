@@ -151,7 +151,7 @@
 }
 */
 
-@media (max-height: 500px) or (max-width: 450px) {
+@media (max-height: 600px) or (max-width: 550px) {
     .selector li svg {
         transform: scale(0.8);
     }
@@ -173,7 +173,7 @@
     }
 }
 
-@media (max-height: 300px) {
+@media (max-height: 400px) {
     /* convert to a horizontal list */
 
     .selectorContainer {
