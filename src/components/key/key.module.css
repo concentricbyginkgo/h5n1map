@@ -24,10 +24,10 @@
 }
 
 /* fix for ios 100vh issue */
-@supports (-webkit-touch-callout: none) {
+@supports (-webkit-fill-available: initial) {
 
     .key {
-        margin-bottom: calc(3% + 25px);
+        margin-bottom: calc(-webkit-fill-available * 0.03) !important;
     }
 }
   

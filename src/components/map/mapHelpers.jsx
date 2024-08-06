@@ -126,9 +126,7 @@ export function setFillsTo(fillFunction, allData, max, color) {
 export function mix1channel(rgb1, rgb2, ratio) {
     return rgb1 + (rgb2 - rgb1) * ratio;
 }
-
-export function whiteToColorGradient(value, color, max, min = 1) {
-    const white = '#F8F9F9';
+export function whiteToColorGradient(value, color, max, min = 1, white = '#F8F9F9') {
     const ra = .3;
     const wr = Math.round(mix1channel(parseInt(white.slice(1, 3), 16), parseInt(color.slice(1, 3), 16), ra));
     const wg = Math.round(mix1channel(parseInt(white.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), ra));
@@ -187,12 +185,12 @@ export function stateFill(dairyD, maxD) {
                 let statename = stateI.state.replace(' ', '_');
                 if (document.getElementById(statename)) {
                     for (let child of document.getElementById(statename).children) {
-                        child.setAttribute('fill', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
-                        child.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
+                        child.setAttribute('fill', whiteToColorGradient(dairyD[key], '#677143', maxD, 1, '#EFF3C7'));
+                        child.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#677143', maxD, 1, '#EFF3C7'));
                         // get the overlay by the id of the child
                         let overlay = document.getElementById(child.id.replace('c', 'b'));
-                        overlay.setAttribute('fill', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
-                        overlay.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#EFF8B8', maxD));
+                        overlay.setAttribute('fill', whiteToColorGradient(dairyD[key], '#677143', maxD, 1, '#EFF3C7'));
+                        overlay.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#677143', maxD, 1, '#EFF3C7'));
                     }
                 }
             }
@@ -211,7 +209,7 @@ export function stateColoringC(dairyD, maxD) { // constructor for state coloring
                 abbreve = abbreve[abbreve.length - 2];
 
                 if (abbreve in dairyD) {
-                    return whiteToColorGradient(dairyD[abbreve], color, maxD);
+                    return whiteToColorGradient(dairyD[abbreve], '#677143', maxD, 1, '#EFF3C7');
                 } else {
                     return '#b3b3b3';
                 }
@@ -379,8 +377,10 @@ export function removeOutlines(dairyData) {
 
 export function allOutlineFix(dairyData, stateM) {
     for (let key of Object.keys(dairyData)) {
+        let set = {};
         for (let stateI of states) {
-            if (stateI.abbreviation == key) {
+            if (!(stateI.abbreviation in set) && stateI.abbreviation == key) {
+                set[stateI.abbreviation] = 1;
                 let statename = stateI.state.replace(' ', '_');
                 let element = document.getElementById("O_" + statename);
                 if (stateM.trim() == 'All') {

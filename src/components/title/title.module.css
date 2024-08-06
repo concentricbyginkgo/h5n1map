@@ -14,9 +14,10 @@
     color: #0c0a10;
 }
 
-/* hide if width OR height are small */
+/* hide if width OR height are small 
 @media (max-width: 500px), (max-height: 400px) {
     .title {
         display: none;
     }
 }
+    */

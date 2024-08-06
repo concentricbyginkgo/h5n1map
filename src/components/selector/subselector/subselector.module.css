@@ -45,12 +45,31 @@
 .subselector li {
     padding: 3px;
     cursor: pointer;
+    position: relative;
+}
+
+.subselector li::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0%;
+    width: 100%;
+    border-top: 1px solid #0c0a10;
 }
 
 .subselector li:hover,
 .subselector li.active {
     background-color: #f0f0f0;
 }
+
+.subselector li:first-child {
+    border-radius: 8px 8px 0 0;
+}
+
+.subselector li:last-child {
+    border-radius: 0 0 8px 8px;
+}
+
 .arrow {
     height: 40% !important;
 }
@@ -61,5 +80,7 @@
 }
 
 .dropdownToggle svg {
-    margin-left: 12px; /* Adjust the margin as needed */
+    /* pinned to the right */
+    margin-left: auto !important;
+    margin-right: 10px !important;
 }
