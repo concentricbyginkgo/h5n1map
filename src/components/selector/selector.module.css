@@ -153,23 +153,19 @@
 
 @media (max-height: 600px) or (max-width: 550px) {
     .selector li svg {
-        transform: scale(0.8);
+        transform: scale(0.9);
     }
 
     .selector li {
-        padding: 1px;
+        padding: 2px;
     }
 
     .selector li h3 {
-        font-size: .9em;
+        font-size: 1em;
     }
 
     .iconContainer {
-        padding: 0px;
-    }
-    
-    .seperator {
-        display: none;
+        padding: 1px;
     }
 }
 
