@@ -2,10 +2,10 @@
     position: absolute;
     /* pinned to the right of the screen */
     right: 0;
-    top: calc(100dvh * 0.035);
+    top: calc(100% * 0.035);
     margin-right: 2%;
-    margin-bottom: 20vh;
-    margin-left: 60vw;
+    margin-bottom: 20%;
+    margin-left: 60%;
     font-family: IBM Plex Mono;
     text-align: center;
 }

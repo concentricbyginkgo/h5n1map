@@ -1,11 +1,11 @@
 .title {
     position: absolute; /* top right */ 
-    top: calc(100dvh * 0.035);
+    top: calc(100% * 0.035);
     left: 0;
     margin-left: 2%;
     font-family: 'Aktive Grotesk', 'sans-serif';
     font-weight: 400;
-    margin-right: 50vw;
+    margin-right: 50%;
 }
 
 .title h1 {

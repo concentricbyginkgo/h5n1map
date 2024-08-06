@@ -38,7 +38,7 @@
     margin: 0;
     padding: 0;
     overflow-y: scroll;
-    max-height: 20vh;
+    max-height: 20%;
     scrollbar-width: none;
 }
 

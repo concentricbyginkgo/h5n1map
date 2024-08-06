@@ -1,6 +1,6 @@
 .key {
     position: absolute; /* bottom left */
-    bottom: calc(100dvh * 0.03);
+    bottom: calc(100% * 0.03);
     left: 0;
     margin-left: 2%;
     font-family: 'Aktive Grotesk', 'sans-serif';
