@@ -6,14 +6,7 @@
     padding: calc(max(0.5%, 12px));
     font-family: 'Aktive Grotesk', 'sans-serif';
     font-weight: 600;
-}
-
-@media (max-height: 500px) {
-    /* convert to a horizontal list */
-
-    .bb {
-        transform: translate(-72%, 25%) !important;
-    }
+    transition: all 0.3s;
 }
 
 .dropdownToggle {
@@ -38,7 +31,7 @@
     margin: 0;
     padding: 0;
     overflow-y: scroll;
-    max-height: 20%;
+    max-height: 20vh;
     scrollbar-width: none;
 }
 
@@ -83,4 +76,19 @@
     /* pinned to the right */
     margin-left: auto !important;
     margin-right: 10px !important;
+}
+
+@media (max-height: 530px) {
+    /* convert to a horizontal list */
+
+    .bb {
+        transform: translate(-72%, 25%) !important;
+    }
+
+}
+
+@media (max-height: 700px) {
+    .bb {
+        transform: translate(-105%, calc(-100% * 3));
+    }
 }

@@ -169,7 +169,7 @@
     }
 }
 
-@media (max-height: 400px) {
+@media (max-height: 530px) {
     /* convert to a horizontal list */
 
     .selectorContainer {
