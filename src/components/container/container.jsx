@@ -23,7 +23,7 @@ const WildlifeDefault = 'All Species';
 const keyColor = {
     'Dairy Farms': '#677143',
     'Poultry Farms': '#7653A5',
-    'Human': '#C77BAB',
+    'Human': '#FFF200',
     'Wild Birds': '#FC573E',
     'Wildlife': '#519A8F',
 };

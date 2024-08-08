@@ -19,6 +19,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "Space Mono";
+  src: url("../fonts/SpaceMono-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+
 :root {
   user-select: none;
   overflow: hidden;

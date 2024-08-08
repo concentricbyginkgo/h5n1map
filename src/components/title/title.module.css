@@ -13,6 +13,17 @@
     color: #0c0a10;
 }
 
+.title h3 {
+    font-family: 'Space Mono', italic;
+    white-space: pre-wrap;
+    font-weight: 300;
+    color: #636363;
+}
+.divider {
+    border-top: 1px solid #0c0a10;
+    margin: 10px 0; /* Adjust the margin as needed */
+}
+        
 /* hide if width OR height are small 
 @media (max-width: 500px), (max-height: 400px) {
     .title {

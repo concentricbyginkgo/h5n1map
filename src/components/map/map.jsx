@@ -6,6 +6,7 @@ import styles from './map.module.css';
 import { Tooltip, STooltip } from './tooltip';
 
 import * as utils from './mapHelpers';
+import Marker from '../dot/marker';
 
 
 export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}
@@ -126,11 +127,13 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         }
     }, [props.selectedWildlife]);
 
+    const [humanMarkers, setHumanMarkers] = useState([]);
 
     useEffect(() => { // loads the initial data
         const ccs = Object.keys(props.allData);
         let madeGradients = [];
         let actualyMadeGradients = [];
+        let newMarkers = [];
         for (const id of ccs) {
             const countyCode = `c${id}`;
             const datum = props.allData[id];
@@ -168,42 +171,20 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
                 if (datum['Human'].length > 0 && dotRef.current) {
 
+                    //if there is already a newMarker for this county, don't add another
+                    if (newMarkers.filter((marker) => marker.id == countyCode + 'dot').length > 0) {
+                        continue;
+                    }
+
                     const bbox = document.getElementById(countyCode).getBBox();
                     const x = bbox.x + bbox.width / 2;
                     const y = bbox.y + bbox.height / 2;
 
-                    const namespaceURI = "http://www.w3.org/2000/svg";
-                    const circle = document.createElementNS(namespaceURI, "circle");
-                    circle.setAttribute("cx", x);
-                    circle.setAttribute("cy", y);
-                    circle.setAttribute("r", 12);
-                    circle.setAttribute("stroke", "black");
-                    circle.setAttribute("stroke-width", 2);
-                    circle.setAttribute("fill", props.color['Human']);
-                    circle.setAttribute("id", countyCode + 'dot');
-                    circle.setAttribute("key", countyCode + 'dot');
-
-
-                    const hoverListener = utils.circleListenerConstructor(datum, setTooltip, parentRef, circle, setStateOutlineState);
-                    circle.addEventListener('mouseenter', hoverListener);
-                    circle.addEventListener('mouseleave', () => {
-                        setTooltip({ visible: false, name: '' })
-                    });
-                    circle.addEventListener('mousemove', (event) => {
-                        setPos({ x: event.clientX, y: event.clientY });
-                    });
-                    circle.addEventListener('click', () => {
-                        console.log(`Clicked on ${datum.name}`);
-                        console.log(pretty(datum));
-                        console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
-                        console.log(datum);
-                    });
-
-                    dotRef.current.appendChild(circle);
+                    newMarkers.push({ x: x, y: y, id: countyCode + 'dot', data: datum });
                 }
             }
         }
-
+        setHumanMarkers(newMarkers);
         props.setLoading(false);
     }, []);
 
@@ -262,13 +243,13 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
     useEffect(() => {
         if (props.selectedLegend == 'All Cases') {
             if (utils.tvis(tooltip, props.selectedLegend)) {
-                console.log('tooltip setting state outline state to null');
+                //console.log('tooltip setting state outline state to null');
                 setStateOutlineState('')
             } else if (utils.svis(sTooltip, tooltip, props.selectedLegend)) {
-                console.log('stooltip setting state outline state to', sTooltip.name.replace('_', ' ').trim());
+                //console.log('stooltip setting state outline state to', sTooltip.name.replace('_', ' ').trim());
                 setStateOutlineState(sTooltip.name.replace('_', ' ').trim());
             } else {
-                console.log('setting state outline state to All');
+                //console.log('setting state outline state to All');
                 setStateOutlineState('All');
             }
         }
@@ -283,6 +264,20 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
             <div ref={parentRef} className={styles.mapContainer}>
                 <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" viewBox="-150 0 1900 1000" className={styles.map}>
                     <defs>
+                        <style>
+                            {`
+                        .cls-1 {
+                            fill: #231f20;
+                        }
+                        .cls-2 {
+                            fill: #fff200;
+                            fill-rule: evenodd;
+                        }
+                        .cls-3 {
+                            opacity: .5;
+                        }
+                    `}
+                        </style>
                         {
                             gradients.map((gradient) => (
                                 <linearGradient key={gradient.id} id={gradient.id} x1="0" x2="0" y1="50" y2="100" gradientUnits='userSpaceOnUse'>
@@ -18937,6 +18932,26 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                 </g>
                             </g>
                             <g id="dots" className={styles.dotsC} style={{ display: props.selectedLegend == 'Human' || props.selectedLegend == 'All Cases' ? 'block' : 'none' }} ref={dotRef}>
+                                {humanMarkers.map((marker, i) => {
+                                    const enterListener = utils.circleListenerConstructor(marker.data, setTooltip, setStateOutlineState);
+                                    const leaveListener = () => {
+                                        setTooltip({ visible: false, name: '' });
+                                    };
+                                    const moveListener = (event) => {
+                                        setTooltip({ visible: true, name: marker.data.name, data: marker.data });
+                                        setPos({ x: event.clientX, y: event.clientY });
+                                    };
+                                    function clickListener() {
+                                        console.log(`Clicked on ${marker.data.name}`);
+                                        console.log(pretty(marker.data));
+                                        console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
+                                        console.log(marker.data);
+                                    }
+                                    
+                                    return (
+                                        <Marker key={i} x={marker.x} y={marker.y} id={marker.id} data={marker.data} enterListener={enterListener} leaveListener={leaveListener} moveListener={moveListener} clickListener={clickListener} />
+                                    )
+                                })}
                             </g>
                         </g>
                     </g>

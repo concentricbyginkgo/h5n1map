@@ -59,7 +59,7 @@ export function hoverListenerConstructor(cData, setTooltip, parentRef, overlay, 
     };
 }
 
-export function circleListenerConstructor(cData, setTooltip, parentRef, overlay, setS) {
+export function circleListenerConstructor(cData, setTooltip, setS) {
     return function (event) {
         setTooltip({
             visible: true,
@@ -149,7 +149,7 @@ export function allColoringC(dairyD, maxD) { // constructor for all coloring
         let colors = [];
         let sources = [];
         for (const source of Object.keys(datum)) {
-            if (source != 'name' && source != 'Human' && datum[source].length > 0) {
+            if (source != 'name' && datum[source].length > 0) {
                 sources.push(source);
                 // we have one color for each source
                 colors.push(color[source]);

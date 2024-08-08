@@ -13,3 +13,11 @@
 .dotContainer {
     margin-top: 5px;
 }
+
+
+@media (max-width: 600px), (max-height: 400px) {
+    .dot {
+        width: 16px;
+        height: 16px;
+    }
+}
