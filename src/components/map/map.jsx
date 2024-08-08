@@ -47,7 +47,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
             name: event.target.id.replace('O_', ' '),
             data: utils.getStateCasesFromName(event.target.id.replace('O_', ' ').replace('_', ' ').trim(), props.dairydata)
         });
-        setStateOutlineState(event.target.id.replace('O_', ' ').replace('_', ' ').trim());
+        //setStateOutlineState(event.target.id.replace('O_', ' ').replace('_', ' ').trim());
     }, []);
 
     const stateMouseLeave = React.useCallback((event) => {
@@ -57,7 +57,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         event.target.classList.remove(styles.childOpacity);
         event.target.style.filter = 'none';
         setSTooltip({ visible: false, name: '' });
-        setStateOutlineState('');
+        //setStateOutlineState('');
     }, []);
 
     const stateMouseLeaveNoOpac = React.useCallback((event) => {
@@ -65,7 +65,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         //     child.style.opacity = null;
         // }
         setSTooltip({ visible: false, name: '' });
-        setStateOutlineState('');
+        //setStateOutlineState('');
     }, []);
 
 
@@ -262,10 +262,13 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
     useEffect(() => {
         if (props.selectedLegend == 'All Cases') {
             if (utils.tvis(tooltip, props.selectedLegend)) {
+                console.log('tooltip setting state outline state to null');
                 setStateOutlineState('')
             } else if (utils.svis(sTooltip, tooltip, props.selectedLegend)) {
+                console.log('stooltip setting state outline state to', sTooltip.name.replace('_', ' ').trim());
                 setStateOutlineState(sTooltip.name.replace('_', ' ').trim());
             } else {
+                console.log('setting state outline state to All');
                 setStateOutlineState('All');
             }
         }

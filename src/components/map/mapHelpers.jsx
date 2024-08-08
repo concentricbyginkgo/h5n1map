@@ -417,8 +417,7 @@ export function tvis(tooltip, sel) {
 }
 
 export function svis(stooltip, tool, sel) {
-
-    if (stooltip.data == 0) {
+    if (stooltip.data == undefined || stooltip.data[0] == 0) {
         return false;
     }
     let tvix = tvis(tool, sel);
