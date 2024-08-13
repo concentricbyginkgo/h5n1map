@@ -42,13 +42,20 @@ countycodes_data = pd.read_csv(countycodes)
 animal_data['source'] = animal_data['source'].str.replace('APHIS - HPAI Detections in ', '')
 animal_data['source'] = animal_data['source'].str.replace('APHIS - HPAI Detections in ', '')
 
+# change 'Mammals' source to 'Wildlife' 
+animal_data['source'] = animal_data['source'].str.replace('Mammals', 'Wildlife')
+# replace 'Livestock' with 'Dairy Farms' 
+animal_data['source'] = animal_data['source'].str.replace('Livestock', 'Dairy Farms')
+# replace 'Commercial and Backyard Flocks' with 'Poultry Farms'
+animal_data['source'] = animal_data['source'].str.replace('Commercial and Backyard Flocks', 'Poultry Farms')
+
 # change unicode hyphens to normal hyphens
 animal_data['county'] = animal_data['county'].str.replace('–', '-')
+
 
 # change Clarke County to Clark County, only in washington
 clarkwa = animal_data[(animal_data['county'] == 'Clarke') & (animal_data['state'] == 'Washington')]
 animal_data.loc[(animal_data['county'] == 'Clarke') & (animal_data['state'] == 'Washington'), 'county'] = 'Clark'
-
 
 # change Stutsman and Dickey South Dakota to North Dakota
 # find stutsman
@@ -220,7 +227,7 @@ for index, row in combined_data.iterrows():
 
     
     if county == '':
-        if row.source != 'Livestock':
+        if row.source != 'Dairy Farms':
             print(row)
             print(index)
             raise ValueError('county is empty')
@@ -234,6 +241,7 @@ for index, row in combined_data.iterrows():
     
     # Append the row string to the list
     json_data[county][source].append(row_str)
+    
 
 # Write the dictionary to a JSON file
 with open('./combined_data.json', 'w') as f:
