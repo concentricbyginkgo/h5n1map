@@ -172,8 +172,10 @@ countycodes_data['county'] = countycodes_data['county'].str.strip().str.lower()
 # remove periods from the county codes sheet
 countycodes_data['county'] = countycodes_data['county'].str.replace('.', '')
 
-# Ensure county codes are strings
+# Ensure county codes are 5 char strings, prepend 0 if necessary
 countycodes_data['id'] = countycodes_data['id'].astype(str)
+countycodes_data['id'] = countycodes_data['id'].apply(lambda x: x.zfill(5))
+
 
 
 # Standardize county names in combined_data
