@@ -18961,10 +18961,10 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                         setPos({ x: event.clientX, y: event.clientY });
                                     };
                                     function clickListener() {
-                                        console.log(`Clicked on ${marker.data.name}`);
+                                        //console.log(`Clicked on ${marker.data.name}`);
                                         console.log(pret);
-                                        console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
-                                        console.log(marker.data);
+                                        // console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
+                                        // console.log(marker.data);
                                     }
                                     
                                     return (
