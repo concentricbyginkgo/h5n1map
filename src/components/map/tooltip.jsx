@@ -1,5 +1,6 @@
 import styles from './tooltip.module.css';
 import extractDate from '../utils/extractDate';
+import { getStateName } from './mapHelpers';
 function textD(info) {
     // if info isnt iterable, return null
 
@@ -14,13 +15,20 @@ function textD(info) {
                 if (name == '') {
                     name = info['name'] + ', ' + data[data.length - 2];
                 }
-                if (sourcd[source] == undefined) {
+                if (source == 'Human') {
+                    sourcd[source] = data[data.length - 3];
+                } else if (sourcd[source] == undefined) {
                     sourcd[source] = 1;
-                } else {
+                } else if (source != 'Human') {
                     sourcd[source] += 1;
                 }
+
                 let eDate = extractDate(true, data);
                 let lDate = extractDate(false, data);
+
+                if (eDate == null && lDate == null) {
+                    continue;
+                }
 
                 if (earliestDate == null || eDate < earliestDate) {
                     earliestDate = eDate;
@@ -55,7 +63,10 @@ function renderTextComponent([name, sourcd, formattedEarliestDate, formattedLate
             }
         }
     }
-    
+    if (name[0] == ',' && name[1] == ' ') {
+       name = getStateName(name.slice(2));
+    }
+
     return (
         <div style={{ zIndex: 99999999999, whiteSpace: 'nowrap' }}>
             <h3>{name}</h3>
@@ -117,7 +128,7 @@ export function STooltip(props) {
         var formattedEarliestDate = 'N/A';
         var formattedLatestDate = 'N/A';
     }
-    
+
     return (
         <div className={styles.tooltip} style={{ left: props.x + 'px', top: props.y + 'px', width: width + 'px', height: height + 'px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 278.9 140.52`} style={{ zIndex: 1, position: 'absolute', width: '100%', height: '100%' }}>

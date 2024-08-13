@@ -134,6 +134,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
         let madeGradients = [];
         let actualyMadeGradients = [];
         let newMarkers = [];
+        let hfix = [];
         for (const id of ccs) {
             const countyCode = `c${id}`;
             const datum = props.allData[id];
@@ -181,6 +182,23 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                     const y = bbox.y + bbox.height / 2;
 
                     newMarkers.push({ x: x, y: y, id: countyCode + 'dot', data: datum });
+                }
+            } else if (datum['Human'].length > 0) {
+                // state level humand data, get the bbox of the state
+                for (const entry of datum['Human']) {
+                    const state2Letter = entry.split(',')[entry.split(',').length - 2];
+
+                    if (hfix.includes(state2Letter)) {
+                        continue;
+                    } else {
+                        hfix.push(state2Letter);
+                    }
+                    // get the full state name from the 2 letter code
+                    const stateName = utils.getStateName(state2Letter);
+                    const bbox = document.getElementById(stateName).getBBox();
+                    const x = bbox.x + bbox.width / 2;
+                    const y = bbox.y + bbox.height / 2;
+                    newMarkers.push({ x: x, y: y, id: stateName + 'dot', data: {'Human': [entry], 'name': '' } });
                 }
             }
         }
@@ -18933,6 +18951,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                             </g>
                             <g id="dots" className={styles.dotsC} style={{ display: props.selectedLegend == 'Human' || props.selectedLegend == 'All Cases' ? 'block' : 'none' }} ref={dotRef}>
                                 {humanMarkers.map((marker, i) => {
+                                    const pret = utils.pretty(marker.data)
                                     const enterListener = utils.circleListenerConstructor(marker.data, setTooltip, setStateOutlineState);
                                     const leaveListener = () => {
                                         setTooltip({ visible: false, name: '' });
@@ -18943,7 +18962,7 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
                                     };
                                     function clickListener() {
                                         console.log(`Clicked on ${marker.data.name}`);
-                                        console.log(pretty(marker.data));
+                                        console.log(pret);
                                         console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
                                         console.log(marker.data);
                                     }

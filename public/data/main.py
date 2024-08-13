@@ -128,35 +128,114 @@ human_data.drop('country', axis=1, inplace=True)
 
 # rename admin areato state
 human_data.rename(columns={'administrative_area_level_1': 'state'}, inplace=True)
+human_data.rename(columns={'administrative_area_level_2': 'county'}, inplace=True)
 
 
 # create a source column for human and fill with "Human"
 human_data['source'] = 'Human'
 
 # add countys to human data, we need to reverse geocode the lat and long into a lookup table
-latlon = {} 
-user_agent = 'h5n1map'
-# format: https://nominatim.openstreetmap.org/reverse?lat=<value>&lon=<value>&<params>
-# zoom	address detail
-# 3	country
-# 5	state
-# 8	county
+# latlon = {} 
+# user_agent = 'h5n1map'
+# # format: https://nominatim.openstreetmap.org/reverse?lat=<value>&lon=<value>&<params>
+# # zoom	address detail
+# # 3	country
+# # 5	state
+# # 8	county
+# for index, row in human_data.iterrows():
+#     if f"{row['latitude']}, {row['longitude']}" not in latlon:
+#         geolocator = Nominatim(user_agent=user_agent)
+#         location = geolocator.reverse(f"{row['latitude']}, {row['longitude']}", zoom=8)
+#         county, state, country = str(location).split(', ')
+#         latlon[f"{row['latitude']}, {row['longitude']}"] = (county, state)
+
+#     # add county and state to human data
+#     human_data.loc[index, 'county'] = latlon[f"{row['latitude']}, {row['longitude']}"][0]
+#     human_data.loc[index, 'state'] = latlon[f"{row['latitude']}, {row['longitude']}"][1]
+
+# if len(latlon) == 0:
+#     raise ValueError('No lat lon data found')
+
+# human data is special, we have one entry for each location, and a cuml_cases column
+# lets just remake it so we have one entry per case
+
+def compare_recursive(l1, l2, max, index = 0):
+    maxIndex = 2
+    # compares index, if they are equal, compare the next index
+    if l1[index] == l2[index]:
+        if index == maxIndex:
+            # they are completely equal
+            return l1
+        else:
+            return compare_recursive(l1, l2, max, index + 1)
+    else:
+        if max:
+            if l1[index] > l2[index]:
+                # l1 is greater
+                return l1
+            else:
+                return l2
+        else:
+            if l1[index] < l2[index]:
+                # l1 is less
+                return l1
+            else:
+                return l2
+
+def date_comparison(row, max=True):
+    # check columns:
+    d1 = 'date_occurred_low_end'
+    d2 = 'date_occurred_high_end'
+    d3 = 'date_detected'
+
+    # dates are in the format: year-mt-dy
+    date1 = row[d1].split('-')
+    date2 = row[d2].split('-')
+    date3 = row[d3].split('-')
+
+    
+    # compare 1 and 2
+    date = compare_recursive(date1, date2, max)
+    # compare date and 3
+    return compare_recursive(date, date3, max) 
+
+human_locations = {}
 for index, row in human_data.iterrows():
-    if f"{row['latitude']}, {row['longitude']}" not in latlon:
-        geolocator = Nominatim(user_agent=user_agent)
-        location = geolocator.reverse(f"{row['latitude']}, {row['longitude']}", zoom=8)
-        county, state, country = str(location).split(', ')
-        latlon[f"{row['latitude']}, {row['longitude']}"] = (county, state)
+    # locations can be county level or state level, disregard country level
+    # (and we have some states that have county level data and state level data)
+    if pd.isna(row['state']):
+        continue
+    state = row['state']
+    if pd.isna(row['county']):
+        key = state
+    else:
+        key = f"{state}, {row['county']}"
 
-    # add county and state to human data
-    human_data.loc[index, 'county'] = latlon[f"{row['latitude']}, {row['longitude']}"][0]
-    human_data.loc[index, 'state'] = latlon[f"{row['latitude']}, {row['longitude']}"][1]
-
-if len(latlon) == 0:
-    raise ValueError('No lat lon data found')
+    if key not in human_locations:
+        human_locations[key] = {'date_max': date_comparison(row, True), 'date_min': date_comparison(row, False), 'cuml_cases': int(row['cuml_cases'])}
+    elif human_locations[key]['date_max'] < date_comparison(row, True):
+        human_locations[key] = {'date_max': date_comparison(row, True), 'date_min': date_comparison(row, False), 'cuml_cases': int(row['cuml_cases'])}
+        
+        
+# create a new human data sheet
+hd = pd.DataFrame(columns=animal_data.columns)
+for key, value in human_locations.items():
+    if ', ' in key:
+        state, county = key.split(', ')
+    else:
+        state = key
+        county = ''
+    date_max = '-'.join(value['date_max'])
+    date_min = '-'.join(value['date_min'])
+    cuml_cases = value['cuml_cases']
+    for i in range(cuml_cases):
+        # pd has no append method, so we have to create a new row and append it
+        # we have date_occurred_low_end, date_occurred_high_end, source, state, county (county can be '')
+        row = {'date_occurred_low_end': date_min, 'date_occurred_high_end': date_max, 'source': 'Human', 'state': state, 'county': county, 'cuml_cases': human_locations[key]['cuml_cases']}
+        hd = pd.concat([hd, pd.DataFrame(row, index=[0])], ignore_index=True)
 
 # compile the human and animal data
-combined_data = pd.concat([animal_data, human_data], ignore_index=True)
+combined_data = pd.concat([animal_data, hd], ignore_index=True)
 
 # add state abbreviations column to combined data
 combined_data = combined_data.merge(statecodes_data, left_on='state', right_on='state', how='left')
@@ -185,7 +264,7 @@ combined_data['county'] = combined_data['county'].str.strip().str.lower()
 # Merge combined_data with countycodes_data
 combined_data = combined_data.merge(countycodes_data, left_on=['county', 'abbreviation'], right_on=['county', 'abbreviation'], how='left')
 # report any that nan county
-print(combined_data[combined_data['county'].isna()])
+# print(combined_data[combined_data['county'].isna()])
 
 # re capitalize the county names
 combined_data['county'] = combined_data['county'].str.title()
@@ -199,6 +278,9 @@ combined_data[nan_columns] = combined_data[nan_columns].astype(object)
 
 # Replace NaN with empty string
 combined_data.fillna('', inplace=True)
+
+# remove .0 from cuml_cases
+combined_data['cuml_cases'] = combined_data['cuml_cases'].astype(str).str.replace('.0', '')
             
 
 # Write the combined data to a CSV
@@ -229,7 +311,7 @@ for index, row in combined_data.iterrows():
 
     
     if county == '':
-        if row.source != 'Dairy Farms':
+        if row.source != 'Dairy Farms' and row.source != 'Human':
             print(row)
             print(index)
             raise ValueError('county is empty')

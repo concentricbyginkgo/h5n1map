@@ -42,17 +42,20 @@ export function pretty(cData) {
             str += `${key}: ${cData[key].length}\n`;
         }
     }
+    str += '\n';
+    str += cData.toString();
     return str;
 }
 
 export function hoverListenerConstructor(cData, setTooltip, parentRef, overlay, setS) {
+    let pret = pretty(cData);
     return function (event) {
         const parent = parentRef.current;
         const parentRect = parent.getBoundingClientRect();
         setTopIndex(overlay);
         setTooltip({
             visible: true,
-            name: pretty(cData),
+            name: pret,
             data: cData
         });
         //setS('');
@@ -60,13 +63,24 @@ export function hoverListenerConstructor(cData, setTooltip, parentRef, overlay, 
 }
 
 export function circleListenerConstructor(cData, setTooltip, setS) {
+    let pret = pretty(cData);
+
+    let state = '';
+
+    if (cData['Human'].length == 1 && Object.keys(cData).length == 2) {
+        let row = cData['Human'][0].split(',');
+        let statename = getStateName(row[row.length - 2]);
+        state = statename;
+    }
+
     return function (event) {
+        //console.log('circle listener: ', cData);
         setTooltip({
             visible: true,
-            name: pretty(cData),
+            name: pret,
             data: cData
         });
-        setS('');
+        setS(state);
     };
 }
 
@@ -74,15 +88,16 @@ export function circleListenerConstructor(cData, setTooltip, setS) {
 export function addEventListenersToID(id, cData, setTooltip, parentRef, setPos, setS) {
     const element = document.getElementById(id);
     const overlay = document.getElementById(id.replace('c', 'b'));
+    const pret = pretty(cData);
     if (element && overlay) {
         const hoverListener = hoverListenerConstructor(cData, setTooltip, parentRef, overlay, setS);
         overlay.addEventListener('mouseenter', hoverListener);
         overlay.addEventListener('mouseleave', () => setTooltip({ visible: false, name: '' }));
         overlay.addEventListener('click', () => {
             //console.log(`Clicked on ${cData.name}`);
-            console.log(pretty(cData));
+            //console.log(pret);
             //console.log('source,state,county,species_or_flock_type,flock_size,hpai_strain,outbreak_date,date_detected,date_collected,date_confirmed,woah_classification,sampling_method,submitting_agency,event,date_occurred_low_end,date_occurred_high_end,cases,confirmed_cases,deaths,cuml_cases,cuml_confirmed_cases,cuml_deaths,latitude,longitude,id');
-            console.log(cData);
+            //console.log(cData);
         });
         overlay.addEventListener('mousemove', (event) => {
             setPos({ x: event.clientX, y: event.clientY });
@@ -422,4 +437,13 @@ export function svis(stooltip, tool, sel) {
     }
     let tvix = tvis(tool, sel);
     return stooltip.visible && (sel == 'Dairy Farms' || (!tvix && sel == 'All Cases'))
+}
+
+export function getStateName(abbr) {
+    for (let state of states) {
+        if (state.abbreviation == abbr) {
+            return state.state;
+        }
+    }
+    return '';
 }

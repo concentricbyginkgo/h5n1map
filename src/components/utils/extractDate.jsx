@@ -1,7 +1,7 @@
 export default function extractDate(earlyLate = true, dataarr) {
     // columns we want to check:
     // outbreak_date,date_detected,date_collected,date_confirmed,date_occurred_low_end,date_occurred_high_end
-    // 5,6,7,8,13,14
+    // 5,6,7,8,12,13
     // data is either mm/dd/yyyy or yyyy-mm-dd
 
     let alldates = [];
@@ -32,7 +32,18 @@ export default function extractDate(earlyLate = true, dataarr) {
         alldates.push(new Date(year, month, day));            
     }
 
+    // get 12 and 13
+    if (dataarr[12].includes('/')) {
+        var date = dataarr[12].split('/');
+    } else if (dataarr[12].includes('-')) {
+        var date = dataarr[12].split('-');
+    }
+
+    alldates.push(new Date(parseInt(date[0]), parseInt(date[1]) - 1, parseInt(date[2])));
+
+
     if (alldates.length == 0) {
+        console.log('No dates found for:', dataarr);
         return null;
     }
 
