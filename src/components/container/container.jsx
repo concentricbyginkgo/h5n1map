@@ -21,7 +21,7 @@ const LegendDefault = 'All Cases';
 const WildlifeDefault = 'All Species';
 
 const keyColor = {
-    'Dairy Farms': '#EFF3C7', // high #EFF3C7 mid #B2B98C low #677143
+    'Dairy Farms': '#EFF3C7', // lo #EFF3C7 mid #B2B98C hi #677143
     'Poultry Farms': '#7653A5',
     'Human': '#FFF200',
     'Wild Birds': '#FC573E',
