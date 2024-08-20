@@ -154,11 +154,22 @@ export function whiteToColorGradient(value, color, max, min = 1, white = '#F8F9F
     const g = Math.round(mix1channel(parseInt(halfwhite.slice(3, 5), 16), parseInt(color.slice(3, 5), 16), ratio));
     const b = Math.round(mix1channel(parseInt(halfwhite.slice(5, 7), 16), parseInt(color.slice(5, 7), 16), ratio));
 
+    //console.log('got', value, 'and returned', `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
-export function allColoringC(dairyD, maxD) { // constructor for all coloring
 
-    stateFill(dairyD, maxD);
+export function allColoringC(dairyD, maxD) { // constructor for all coloring
+    var newDairyD = {};
+    var maxDairy = 0;
+
+    for (let key of Object.keys(dairyD)) {
+        if (dairyD[key] > maxDairy) {
+            maxDairy = dairyD[key];
+        }
+        newDairyD[key] = -1;
+    }
+
+    stateFill(newDairyD, maxDairy);
 
     return function allColoring(datum, max, color) {
         let colors = [];
@@ -200,6 +211,7 @@ export function stateFill(dairyD, maxD) {
                 let statename = stateI.state.replace(' ', '_');
                 if (document.getElementById(statename)) {
                     for (let child of document.getElementById(statename).children) {
+                        //console.log('filling', child.id, 'with value', dairyD[key], 'and max', maxD);
                         child.setAttribute('fill', whiteToColorGradient(dairyD[key], '#677143', maxD, 1, '#EFF3C7'));
                         child.setAttribute('stroke', whiteToColorGradient(dairyD[key], '#677143', maxD, 1, '#EFF3C7'));
                         // get the overlay by the id of the child
@@ -224,7 +236,7 @@ export function stateColoringC(dairyD, maxD) { // constructor for state coloring
                 abbreve = abbreve[abbreve.length - 2];
 
                 if (abbreve in dairyD) {
-                    return whiteToColorGradient(dairyD[abbreve], '#677143', maxD, 1, '#EFF3C7');
+                    return whiteToColorGradient(dairyD[abbreve], '#677143', maxD + 1, 1, '#EFF3C7');
                 } else {
                     return '#b3b3b3';
                 }

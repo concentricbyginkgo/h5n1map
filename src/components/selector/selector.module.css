@@ -121,6 +121,7 @@
 }
 
 .selector li svg {
+    transform: scale(.8);
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -153,7 +154,7 @@
 
 @media (max-height: 600px) or (max-width: 550px) {
     .selector li svg {
-        transform: scale(0.9);
+        transform: scale(0.65);
     }
 
     .selector li {
