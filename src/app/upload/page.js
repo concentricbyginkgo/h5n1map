@@ -21,7 +21,7 @@ export default async function Home() {
 
   return (
     <main>
-      <div className='dynaMargin dynaPad fontL' style={{ display: 'block', marginTop: '10%', marginLeft: 'auto', marginRight: 'auto', width: '80%', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+      <div className='dynaMargin dynaPad fontXL' style={{ display: 'block', marginTop: '10%', marginLeft: 'auto', marginRight: 'auto', width: '80%', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
         <UploadForm fileName={fileNames[0]} currentColor={currentColorAnimal} datafile={data[0]} />
         <UploadForm fileName={fileNames[1]} currentColor={currentColorHuman} datafile={data[1]} />
       </div>

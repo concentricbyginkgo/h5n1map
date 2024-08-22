@@ -13,7 +13,7 @@ import Selector from '../selector/selector';
 
 import Map from '../map/map';
 
-import allData from '../../../public/data/combined_data.json';
+import allData from '../../../public/newData/combined_data.json';
 
 import extractDate from '../utils/extractDate';
 

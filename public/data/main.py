@@ -1,9 +1,5 @@
 import pandas as pd
 import json
-import numpy as np
-import geopy
-from geopy.geocoders import Nominatim
-
 
 # data files
 animal = './combined_h5n1_animal_surveillance_data.csv'
@@ -39,7 +35,6 @@ statecodes_data = pd.read_csv(statecodes)
 countycodes_data = pd.read_csv(countycodes)
 
 # remove "APHIS - HPAI Detections in " from the source column
-animal_data['source'] = animal_data['source'].str.replace('APHIS - HPAI Detections in ', '')
 animal_data['source'] = animal_data['source'].str.replace('APHIS - HPAI Detections in ', '')
 
 # change 'Mammals' source to 'Wildlife' 
@@ -106,11 +101,6 @@ animal_data.loc[(animal_data['county'] == 'Macon') & (animal_data['state'] == 'O
 # replace michigan with Michigan
 animal_data['state'] = animal_data['state'].str.replace('michigan', 'Michigan')
 
-
-# state : 51, 50 states and DC
-# print('51 states in animal data:')
-# print(animal_data[~animal_data['state'].isin(statecodes_data['state'])]['state'].unique()) # is DC, we have a county code for it 11001
-
 # we can remove guid column, it represents the same as year
 human_data['event'] = human_data['event'].str.replace('Novel Influenza A (H5N1)_United States_', '')
 human_data.drop('event_guid', axis=1, inplace=True)
@@ -133,31 +123,6 @@ human_data.rename(columns={'administrative_area_level_2': 'county'}, inplace=Tru
 
 # create a source column for human and fill with "Human"
 human_data['source'] = 'Human'
-
-# add countys to human data, we need to reverse geocode the lat and long into a lookup table
-# latlon = {} 
-# user_agent = 'h5n1map'
-# # format: https://nominatim.openstreetmap.org/reverse?lat=<value>&lon=<value>&<params>
-# # zoom	address detail
-# # 3	country
-# # 5	state
-# # 8	county
-# for index, row in human_data.iterrows():
-#     if f"{row['latitude']}, {row['longitude']}" not in latlon:
-#         geolocator = Nominatim(user_agent=user_agent)
-#         location = geolocator.reverse(f"{row['latitude']}, {row['longitude']}", zoom=8)
-#         county, state, country = str(location).split(', ')
-#         latlon[f"{row['latitude']}, {row['longitude']}"] = (county, state)
-
-#     # add county and state to human data
-#     human_data.loc[index, 'county'] = latlon[f"{row['latitude']}, {row['longitude']}"][0]
-#     human_data.loc[index, 'state'] = latlon[f"{row['latitude']}, {row['longitude']}"][1]
-
-# if len(latlon) == 0:
-#     raise ValueError('No lat lon data found')
-
-# human data is special, we have one entry for each location, and a cuml_cases column
-# lets just remake it so we have one entry per case
 
 def compare_recursive(l1, l2, max, index = 0):
     maxIndex = 2
@@ -279,9 +244,10 @@ combined_data[nan_columns] = combined_data[nan_columns].astype(object)
 # Replace NaN with empty string
 combined_data.fillna('', inplace=True)
 
-# remove .0 from cuml_cases
-combined_data['cuml_cases'] = combined_data['cuml_cases'].astype(str).str.replace('.0', '')
-            
+# remove any extraneous decimals from integers
+# combined_data['cuml_cases'] = combined_data['cuml_cases'].astype(str).str.replace('.0', '')
+for col in combined_data.columns:
+    combined_data[col] = combined_data[col].astype(str).str.replace('.0', '')          
 
 # Write the combined data to a CSV
 combined_data.to_csv('./combined_data.csv', index=False)

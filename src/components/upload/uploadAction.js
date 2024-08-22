@@ -2,6 +2,8 @@
 import fs from "node:fs/promises";
 import { revalidatePath } from "next/cache";
 
+import updateData from "./updateData";
+
 export async function uploadFile(formData) {
     const file = formData.get("file");
     if (!(file instanceof File)) {
@@ -22,4 +24,6 @@ export async function uploadFile(formData) {
     await fs.writeFile(`./public/uploads/${file.name}`, buffer);
 
     revalidatePath("/");
+
+    return updateData();
 }
