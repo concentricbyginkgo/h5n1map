@@ -35,6 +35,11 @@ const keyType = {
 };
 
 function getDairyData(allData) {
+    if (allData[''] === undefined) {
+        return [{}, {}];
+    } else if (allData['']['Dairy Farms'] === undefined) {
+        return [{}, {}];
+    }
     let dairyData = allData['']['Dairy Farms'];
 
     let dairyD = {};
@@ -88,6 +93,11 @@ function dataIngest(data) {
     let dates = {};
     let legendOptions = [LegendDefault];
     let wildlifeOptions = [WildlifeDefault];
+
+    if (Object.keys(data).length === 0) {
+        return [maxes, legendOptions, wildlifeOptions, dates];
+    }
+
     for (var entry in data) {
         var countyData = undefined;
 
@@ -193,11 +203,11 @@ export default function Container({ allData }) {
     // map container has the controls and the key for the map
      
     if (Object.keys(allData).length === 0) {
+        console.log('No Data!');
         return <div>
             <LoadingOverlay loading={true} />
         </div>;
     }
-    
     // data ingest takes some time so show a loading overlay
     const [loading, setLoading] = React.useState(true);
     

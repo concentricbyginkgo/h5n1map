@@ -29,15 +29,28 @@ function objlist(data) {
     // convert csv to list of objects with keys from the first row
     const lines = data.split('\n');
     const keys = lines[0].split(',');
+    // strip /r from last key
+    keys[keys.length - 1] = keys[keys.length - 1].replace('\r', '');
     lines.shift();
     const objs = [];
-    for (const line of lines) {
+    for (let line of lines) {
+        // strip /r from last value
+        line = line.replace('\r', '');
         const obj = {};
         const values = line.split(',');
         for (let i = 0; i < keys.length; i++) {
-            obj[keys[i]] = values[i];
+            if (values[i] === undefined) {
+                obj[keys[i]] = '';
+            } else {
+                obj[keys[i]] = values[i];
+            }
         }
-        objs.push(obj);
+        // if all values are empty, skip the row
+        if (Object.values(obj).every(v => v === '')) {
+            continue;
+        } else {
+            objs.push(obj);
+        }
     }
     return objs;
 }
@@ -68,8 +81,18 @@ export async function updateDB() {
     
     // client.release();
     // return;
+    var json;
+    try {
+        json = await updateData(human, animal);
+    } catch (e) {
+        console.error('Error updating data', e);
+        return false;
+    }
 
-    const json = await updateData(human, animal);
+    if (!json) {
+        console.error('Error updating data');
+        return false;
+    }
 
     try {
         await client.query(
@@ -79,7 +102,9 @@ export async function updateDB() {
         );
     } catch (error) {
         console.error('Error inserting file', error);
+        return false;
     } finally {
         client.release();
+        return true;
     }
 }

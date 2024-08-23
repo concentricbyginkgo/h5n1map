@@ -166,8 +166,9 @@ export default function Map(props) { // map props = {allData, Maxes, selectedLeg
 
             setGradients(actualyMadeGradients);
 
-
-            if (document.getElementById(countyCode)) {
+            if (datum['Human'] == undefined) {
+                continue;
+            } else if (document.getElementById(countyCode)) {
                 utils.addEventListenersToID(countyCode, datum, setTooltip, parentRef, setPos, setStateOutlineState);
 
                 if (datum['Human'].length > 0 && dotRef.current) {

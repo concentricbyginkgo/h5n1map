@@ -43,7 +43,6 @@ export default function extractDate(earlyLate = true, dataarr) {
 
 
     if (alldates.length == 0) {
-        console.log('No dates found for:', dataarr);
         return null;
     }
 

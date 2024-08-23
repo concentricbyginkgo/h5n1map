@@ -56,6 +56,8 @@ export default async function updateData(human, animal) {
     // fix animal data
     // remove "APHIS - HPAI Detections in " from the source column
     animal.forEach(function (row) {
+       // console.log('animal forEach');
+       // console.log(row);
         row.source = row.source.replace('APHIS - HPAI Detections in ', '');
 
 
@@ -308,13 +310,10 @@ export default async function updateData(human, animal) {
         for (let j = 0; j < remove.length; j++) {
             // catch the exceptions
             if (combinedData[i].county === 'Baltimore city' && combinedData[i].abbreviation === 'MD') {
-                console.log('baltimore city');
                 combinedData[i].county = 'baltimore city';
             } else if (combinedData[i].county === 'St Louis city' && combinedData[i].abbreviation === 'MO') {
-                console.log('st louis city');
                 combinedData[i].county = 'st louis city';
             } else if (combinedData[i].county === 'Roanoke city' && combinedData[i].abbreviation === 'VA') {
-                console.log('roanoke city');
                 combinedData[i].county = 'roanoke city';
             } else {
                 combinedData[i].county = combinedData[i].county.replace(remove[j], '');
@@ -328,18 +327,16 @@ export default async function updateData(human, animal) {
         combinedData[i].county = combinedData[i].county.replace(/\./g, '');
 
     }
-
     // do the same to countycodes
     counties.forEach(function (row) {
+       // console.log('counties forEach');
+       // console.log(row);
         for (let j = 0; j < remove.length; j++) {
             if (row.county === 'Baltimore city' && row.abbreviation === 'MD') {
-                console.log('baltimore city');
                 row.county = 'baltimore city';
             } else if (row.county === 'St Louis city' && row.abbreviation === 'MO') {
-                console.log('st louis city');
                 row.county = 'st louis city';
             } else if (row.county === 'Roanoke city' && row.abbreviation === 'VA') {
-                console.log('roanoke city');
                 row.county = 'roanoke city';
             } else {
                 row.county = row.county.replace(remove[j], '');

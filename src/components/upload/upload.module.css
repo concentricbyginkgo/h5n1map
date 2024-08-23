@@ -4,6 +4,10 @@
   margin: 1rem auto;
 }
 
+.dragOver {
+  border: 2px dashed #386aac;
+}
+
 .uploadForm {
   display: block;
   padding: 1rem;
