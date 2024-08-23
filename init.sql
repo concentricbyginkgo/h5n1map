@@ -13,3 +13,4 @@ CREATE TABLE user_session (
     expires_at TIMESTAMPTZ NOT NULL,
     user_id TEXT NOT NULL REFERENCES auth_user(id)
 )
+
