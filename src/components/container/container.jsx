@@ -5,17 +5,15 @@ import Div100vh from 'react-div-100vh';
 
 import styles from './container.module.css';
 
-import LoadingOverlay from './loading/loading';
+import LoadingOverlay from '@/components/loading/loading';
 
-import Title from '../title/title';
-import Key from '../key/key';
-import Selector from '../selector/selector';
+import Title from '@/components/title/title';
+import Key from '@/components/key/key';
+import Selector from '@/components/selector/selector';
 
-import Map from '../map/map';
+import Map from '@/components/map/map';
 
-import allData from '../../../public/newData/combined_data.json';
-
-import extractDate from '../utils/extractDate';
+import extractDate from '@/components/utils/extractDate';
 
 const LegendDefault = 'All Cases';
 const WildlifeDefault = 'All Species';
@@ -191,13 +189,19 @@ function dataIngest(data) {
 }
 
 
-export default function Container() {
+export default function Container({ allData }) {
     // map container has the controls and the key for the map
-
+     
+    if (Object.keys(allData).length === 0) {
+        return <div>
+            <LoadingOverlay loading={true} />
+        </div>;
+    }
+    
     // data ingest takes some time so show a loading overlay
     const [loading, setLoading] = React.useState(true);
+    
     const [Maxes, LegendOptions, WildlifeOptions, Dates] = dataIngest(allData);
-
     // default selected values, can be selected via key
     const [selectedLegend, setSelectedLegend] = React.useState(LegendOptions[0]);
     const [selectedWildlife, setSelectedWildlife] = React.useState(WildlifeOptions[0]);

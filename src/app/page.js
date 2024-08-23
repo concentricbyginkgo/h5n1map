@@ -1,9 +1,14 @@
 import Container from "@/components/container/container";
+import getData from "@/components/utils/data";
 
-export default function Home() {
+//export const dynamic = "force-dynamic";
+export const revalidate = 0
+export default async function Home() {
+  const allData = await getData();
+  console.log(allData);
   return (
     <main>
-        <Container />
+      <Container allData={allData} />
     </main>
   );
 }

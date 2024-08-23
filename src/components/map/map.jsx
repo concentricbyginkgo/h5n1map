@@ -6,7 +6,7 @@ import styles from './map.module.css';
 import { Tooltip, STooltip } from './tooltip';
 
 import * as utils from './mapHelpers';
-import Marker from '../dot/marker';
+import Marker from '@/components/dot/marker';
 
 
 export default function Map(props) { // map props = {allData, Maxes, selectedLegend, selectedWildlife, setLoading}

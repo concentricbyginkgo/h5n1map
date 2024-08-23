@@ -1,34 +1,32 @@
-#  Use docker with:
+# Run app and volume
+
+    docker-compose up -d --build
+
+    docker-compose down
+
+# Notes
+
+database is kept in a volume, which can be removed with:
+
+    docker-compose down -v
+
+but this will revert the database to its initial state.
+
+
+#  Use docker for just the nextjs app
 
     docker build -t nextjs-docker .
 
-    docker run -p 3000:3000 nextjs-docker
+    docker run -p 3000:3000 nextjs-docker 
 
-# County Codes:
+# Remove just this container
 
-[./data/countycodes.csv](./data/countycodes.csv)
+    docker rm -f $(docker ps -a -q --filter ancestor=nextjs-docker)
 
-Examples:
-
-To color two counties red (in this case Loving County and Dallas County in Texas) simply
-go to the CSS insertion point and add:
-
-#c48301, #c48113 {fill:red}
-
-To color an entire state's counties (in the case New_Mexico, with "35" being the state code) a green,
-go to the CSS insertion point and add:
-
-path[id*='c35'] {fill:#34A853}
 
 For the U.S. Census county codes (FIPS codes) used in this file to identify individual counties, see this link:
 
 https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt
-
-The county codes used in this file combine the 2-digit state code, which is in the second column of the file
-linked above, and the 3-digit county code, which is in the third column of the file linked above. Each value
-for the "id" attribute for each county is in the following form: "c[state_code][county-code]". For example,
-for Loving Country in Texas, the state code is "48" and the county code is "301", so the id name for the
-county is "c48301".
 
 County codes used in this file can also be found on Wikimedia Commons at this link:
 https://commons.wikimedia.org/wiki/File_talk:Usa_counties_large.svg/county_codes
