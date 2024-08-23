@@ -4,6 +4,17 @@
 
     docker-compose down
 
+# Development
+
+    npm run dev
+
+    docker-compose up db
+    
+# IMPORTANT
+
+you NEED an .env, with these vars and whatever values:
+
+
 # Notes
 
 database is kept in a volume, which can be removed with:

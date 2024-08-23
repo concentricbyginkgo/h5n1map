@@ -112,6 +112,10 @@ a {
   gap: 5px;
 }
 
+.login form label {
+  margin-right: 10px;
+}
+
 /* dynamic font size */
 @media (max-width: 1000px), (max-height: 800px) {
   .fontXL {

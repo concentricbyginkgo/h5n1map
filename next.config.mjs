@@ -16,6 +16,9 @@ const nextConfig = {
         });
 
         return config;
+    },
+    experimental: {
+        serverComponentsExternalPackages: ['@node-rs/argon2']
     }
 }
 
