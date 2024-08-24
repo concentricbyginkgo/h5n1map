@@ -5,11 +5,8 @@ import { unstable_cache } from "next/cache";
 import { NodePostgresAdapter } from "@lucia-auth/adapter-postgresql";
 import pool from "./components/utils/db";
 
-const user = process.env.DB_USER || 'PostUser';
-console.log('trying to initialize lucia with user', user);
-
 const adapter = new NodePostgresAdapter(pool, {
-	user: user,
+	user: 'auth_user',
 	session: 'user_session',
 });
 

@@ -14,6 +14,17 @@
 
 you NEED an .env, with these vars and whatever values:
 
+POSTGRES_USER=PostUser
+POSTGRES_PASSWORD=GresPass
+POSTGRES_DB=db
+DB_PORT=5432
+PORT=3000
+AUTH_USER=absolutelyanadmin
+AUTH_ID=123456789
+AUTH_PASS=definitelyADefiantPassword
+AUTH_HASH='$argon2id$v=19$m=19456,t=2,p=1$6mY6WaY9C69h/tolDXlz3Q$CqzmvLOVmarVaaiuVnGPcOoWUKl2cWpLPiSC3qj9VPo'
+
+unfortunately, the hash is hardcoded because I used argon2id, but you can just run a node script to generate the hash from any password you want.
 
 # Notes
 

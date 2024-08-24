@@ -4,13 +4,13 @@ CREATE TABLE IF NOT EXISTS files (
   data BYTEA NOT NULL
 );
 
-CREATE TABLE auth_user (
+CREATE TABLE IF NOT EXISTS auth_user (
     id TEXT PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL
 );
 
-CREATE TABLE user_session (
+CREATE TABLE IF NOT EXISTS user_session (
     id TEXT PRIMARY KEY,
     expires_at TIMESTAMPTZ NOT NULL,
     user_id TEXT NOT NULL REFERENCES auth_user(id)
