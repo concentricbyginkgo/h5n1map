@@ -2,6 +2,7 @@
 import { useRef, useState, useEffect } from "react";
 import styles from './upload.module.css';
 import { uploadFile } from "@/components/utils/uploadAction";
+import { validateRequest } from "@/auth";
 
 // export const revalidate = 0;
 export default function UploadForm({ fileName }) {
@@ -25,6 +26,10 @@ export default function UploadForm({ fileName }) {
   const divRef = useRef(null);
 
   function handleDroppedFile(e) {
+    const { user } = validateRequest();
+    if (!user) {
+      return;
+    }
     e.preventDefault();
     const files = e.dataTransfer.files;
     if (files.length > 0 && formRef.current) {
@@ -53,6 +58,11 @@ export default function UploadForm({ fileName }) {
       <form ref={formRef} className={styles.uploadForm} action={(e) => {
         // enforce file name
         setSuccess('lightblue');
+        const { user } = validateRequest();
+        if (!user) {
+          setSuccess('lightcoral');
+          return;
+        }
         uploadFile(e, fileName).then((res) => {
           if (res) {
             setSuccess('lightgreen');
