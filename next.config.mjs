@@ -3,7 +3,7 @@
  */
 const nextConfig = {
     /* config options here */
-    output: 'standalone',
+    output: 'export',
     webpack: (config, options) => {
         config.module.rules.push({
             test: /\.csv$/,
@@ -17,9 +17,9 @@ const nextConfig = {
 
         return config;
     },
-    experimental: {
-        serverComponentsExternalPackages: ['@node-rs/argon2']
-    }
+    images: {
+        unoptimized: true,
+    },
 }
 
 export default nextConfig
