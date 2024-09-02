@@ -3,16 +3,30 @@
     npm run build
 
 to create the /out/ dir with the static site inside.
-to test, you can use something like node http-server inside that directory.
+to test, you can use the node http-server package, run it inside that directory.
 
 # Data
 
 this app will use backup data in /public/data/ if the data is not available in the bucket
 
-please put the bucket link in the .env file
+# S3 setup!
 
-main.py is currently just the skeleton of a lambda function, it needs some work.
+all the content for the bucket is in [lambdabucket](/lambdabucket/)
 
+main.py is currently just the skeleton of a lambda function, it needs some variables.
+
+To get this running, you will want to create two buckets, with permissions set up.
+
+You need a source bucket and a destination bucket, and they should be different
+to avoid invoking when a new upload is added.
+
+Put the bucket names into main.py, the lambda function.
+
+Put the destination bucket link in the .env file
+
+The permission policy should include s3 GetObject and PutObject.
+
+The lambda function needs the trigger set to S3 All object create event.
 
 # Notes
 

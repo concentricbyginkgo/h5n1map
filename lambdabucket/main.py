@@ -1,37 +1,22 @@
 import pandas as pd
 import json
 import requests
+import boto3
 
-# urls
-animalURL = ''
-humanURL = ''
-statecodesURL = ''
-countycodesURL = ''
 
-# data file names, backups or for running locally
+# CHANGE ME # =====================================
+s3_client = boto3.client('s3')
+sourceBucket = ''
+destinationBucket = ''
+# =================================================
+
+# data file names, this program will get stuck if names are wrong
 animalFile = "combined_h5n1_animal_surveillance_data.csv"
 humanFile = "H5N1_human_surveillance_data.csv"
 statecodesFile = "states.csv"
 countycodesFile = "countycodes.csv"
 
-#relative path
-path = './public/data/'
-
-
-def data_summary(sheet, title=None):
-    print(" --------------------------------- ")
-    if title:
-        print(title + "\n")
-
-    print("columns:\n", sheet.columns)
-
-    print("\nuniques per column:\n")
-
-    for col in sheet.columns:
-        num_uniques = sheet[col].nunique()
-        print(col, ":", num_uniques)
-        if 0 < num_uniques < 10:
-            print(sheet[col].unique())
+combined_file = 'combined_data.json'
 
 def compare_recursive(l1, l2, max, index=0):
     maxIndex = 2
@@ -74,7 +59,6 @@ def date_comparison(row, max=True):
 
 
 def create_json(animal, human, statecodes, countycodes):
-    print("Creating JSON data from:", animal, human, statecodes, countycodes)
     # read data
     animal_data = pd.read_csv(animal)
     # data_summary(animal_data, 'Animal Data')
@@ -182,9 +166,7 @@ def create_json(animal, human, statecodes, countycodes):
     animal_data["state"] = animal_data["state"].str.replace("michigan", "Michigan")
 
     # state : 51, 50 states and DC
-    # print('51 states in animal data:')
-    # print(animal_data[~animal_data['state'].isin(statecodes_data['state'])]['state'].unique()) # is DC, we have a county code for it 11001
-
+    
     # we can remove guid column, it represents the same as year
     human_data["event"] = human_data["event"].str.replace("Novel Influenza A (H5N1)_United States_", "")
     human_data.drop("event_guid", axis=1, inplace=True)
@@ -322,7 +304,6 @@ def create_json(animal, human, statecodes, countycodes):
         right_on=["county", "abbreviation"],
         how="left",)
     # report any that nan county
-    # print(combined_data[combined_data['county'].isna()])
 
     # re capitalize the county names
     combined_data["county"] = combined_data["county"].str.title()
@@ -364,8 +345,6 @@ def create_json(animal, human, statecodes, countycodes):
 
         if county == "":
             if row.source != "Dairy Farms" and row.source != "Human":
-                print(row)
-                print(index)
                 raise ValueError("county is empty")
 
         # Initialize the nested dictionary if it doesn't exist
@@ -380,38 +359,51 @@ def create_json(animal, human, statecodes, countycodes):
     return json_data
 
 
-def main():
+def main(animalF, humanF, stateF, countyF):
     # retrieve data from local dir
-    jsondata = {}
-
-    listRemote = [animalURL, humanURL, statecodesURL, countycodesURL]
-    listLocal = [animalFile, humanFile, statecodesFile, countycodesFile]
-    listOut = []
-
     try:
-        # try to match urls
-        for i in range(len(listRemote)):
-            try:
-                #test fetch
-                if requests.get(listRemote[i]).status_code == 200:
-                    listOut.append(listRemote[i])
-                else:
-                    listOut.append(path + listLocal[i])
-            except:
-                listOut.append(path + listLocal[i])
-
-        jsondata = create_json(listOut[0], listOut[1], listOut[2], listOut[3])
+        jsondata = create_json(animalF, humanF, stateF, countyF)
 
         # then we would want to save a .json to the bucket
         # but for now we will write to folder
-        #print("got data with keys:'", jsondata.keys(), "'")
-        with open(path + 'combined_data.json', 'w') as f:
+        with open('/tmp/' + combined_file, 'w') as f:
             json.dump(jsondata, f, indent=4)
+
+        return '/tmp/' + combined_file
     
     except Exception as e:
-        print(e)
-        return None
+        return {
+            'statuscode': 500,
+            'body': 'Data processing error?'
+        }
     
+def lambda_handler(event, context):
+
+    try:
+
+        s3_client.download_file(sourceBucket, animalFile, '/tmp/' + animalFile)
+        s3_client.download_file(sourceBucket, humanFile, '/tmp/' + humanFile)
+        s3_client.download_file(sourceBucket, humanFile, '/tmp/' + statecodesFile)
+        s3_client.download_file(sourceBucket, humanFile, '/tmp/' + countycodesFile)
+
+        outputFile = main('/tmp/' + animalFile, '/tmp/' + humanFile, '/tmp/' + statecodesFile, '/tmp/' + countycodesFile)
+
+        if outputFile == None:
+            return {
+
+            }
+    
+        s3_client.upload_file(outputFile, destinationBucket, combined_file)
+
+        return {
+            'satuscode': 200,
+            'body': 'Success!'
+        }
+    except:
+        return {
+            'statuscode': 500,
+            'body': 'S3 Error?'
+        }
 
 if __name__ == "__main__":
     main()
