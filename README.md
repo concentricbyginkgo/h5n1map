@@ -1,30 +1,48 @@
-# README
+## README
+
+Run this:
 
     npm run build
 
 to create the /out/ dir with the static site inside.
-to test, you can use the node http-server package, run it inside that directory.
+To test, use node http-server package, run two servers after building:
 
-# Data
+    cd .\out\
+    http-server -p 3000
 
-this app will use backup data in /public/data/ if the data is not available in the bucket
+and 
+
+    cd .\lambdabucket\
+    http-server-p 3001 --cors -c-1
+
+## Data
+
+This app will use hardcoded backup data in /public/data/ if the data URL from the .env is not available to be fetched.
 
 # S3 setup!
 
-all the content for the bucket is in [lambdabucket](/lambdabucket/)
+all the content for the bucket is in the [lambdabucket](/lambdabucket/) directory.
 
-main.py is currently just the skeleton of a lambda function, it needs some variables.
+[main.py](/lambdabucket/main.py) is currently just the skeleton of a lambda function, it needs some variables:
 
-To get this running, you will want to create two buckets, with permissions set up.
+    s3_client: needs to be a properly configured boto instance
 
-You need a source bucket and a destination bucket, and they should be different
-to avoid invoking when a new upload is added.
+    sourceBucket: the name of the source bucket (private, triggers the lambda)
 
-Put the bucket names into main.py, the lambda function.
+    destinationBucket: the name of the dest bucket (publicly readable)
 
-Put the destination bucket link in the .env file
+To get this running, you will need a source bucket and a destination bucket, and they should be different to avoid invoking when a new upload is added.
 
-The permission policy should include s3 GetObject and PutObject.
+The source bucket needs all the .csv's in [./lambdabucket](/lambdabucket/)
+
+The destination bucket needs to be publicly readable
+(Best practice for this is to route through cloudfront for CDN, probably unnecessary)
+
+The [.env](.env) also needs the destination bucket's public link, building the nextJS app relies upon it.
+
+Put the bucket names into [main.py](/lambdabucket/main.py), and into [.env](.env).
+
+The permission policy should include s3 GetObject and PutObject for source and dest respectively.
 
 The lambda function needs the trigger set to S3 All object create event.
 

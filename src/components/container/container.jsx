@@ -186,17 +186,18 @@ function dataIngest(data) {
     });
 
     //get the dairy farm date
-    for (const source of Object.keys(data[''])) {
-        if (source == 'Dairy Farms') {
-            for (const line of data[''][source]) {
-                const date = extractDate(true, line.split(','));
-                if (date > dates[source]) {
-                    dates[source] = date;
+    if (data[''] != undefined) {
+        for (const source of Object.keys(data[''])) {
+            if (source == 'Dairy Farms') {
+                for (const line of data[''][source]) {
+                    const date = extractDate(true, line.split(','));
+                    if (date > dates[source]) {
+                        dates[source] = date;
+                    }
                 }
             }
         }
     }
-
 
     return [maxes, legendOptions, wildlifeOptions, dates];
 }
@@ -206,7 +207,6 @@ export default function Container({ allData }) {
     // map container has the controls and the key for the map
      
     if (Object.keys(allData).length === 0) {
-        console.log('No Data!');
         return <div>
             <LoadingOverlay loading={true} />
         </div>;
