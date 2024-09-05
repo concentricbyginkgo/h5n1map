@@ -1,13 +1,10 @@
 import Container from "@/components/container/container";
-import getData from "@/components/utils/data";
+import oldData from '../../public/data/combined_data.json';
 
-//export const dynamic = "force-dynamic";
-export const revalidate = 0;
 export default async function Home() {
-  const allData = await getData();
   return (
     <main>
-      <Container allData={allData} />
+      <Container allData={oldData} />
     </main>
   );
 }
