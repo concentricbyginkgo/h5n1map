@@ -1,9 +1,23 @@
-# Run app and volume
+# H5N1 Map
+
+## Run Locally
+
+Easiest path:
 
     npm install
     npm run dev
 
-# Notes
+You can also test as if it were in production:
+
+    npm run build
+    TODO FILL ME OUT
+
+## Build and Deploy
+
+    npm run build
+    TODO FILL ME OUT
+
+## Notes
 
 For the U.S. Census county codes (FIPS codes) used in this file to identify individual counties, see this link:
 
