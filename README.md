@@ -1,6 +1,10 @@
 # H5N1 Map
 
-## Run Locally
+H5N1 interactive map that can be embedded in other websites. Created for use by marketing.
+
+## Development
+
+### Run Locally
 
 Easiest path:
 
@@ -12,12 +16,21 @@ You can also test as if it were in production:
     npm run build
     TODO FILL ME OUT
 
-## Build and Deploy
+### Build and Deploy
 
     npm run build
     TODO FILL ME OUT
 
-## Notes
+### Update the dataset
+
+1. TODO FILL ME OUT - who gives us data/what event triggers those
+1. TODO FILL ME OUT - how to reformat the data, if necessary
+1. TODO FILL ME OUT - how to update the data in the project
+1. Build and test locally
+1. TODO FILL ME OUT - who to notify
+1. Build and deploy to prod
+
+## Misc Notes
 
 For the U.S. Census county codes (FIPS codes) used in this file to identify individual counties, see this link:
 
