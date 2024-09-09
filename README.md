@@ -13,13 +13,19 @@ Easiest path:
 
 You can also test as if it were in production:
 
+    # assumes you have globally installed http-server via `npm install -g http-server`
+    npm install
     npm run build
-    TODO FILL ME OUT
+    rm -rf h5n1-map
+    mv out h5n1-map
+    http-server .
+    # follow terminal command to load site in your browser
 
 ### Build and Deploy
 
-    npm run build
-    TODO FILL ME OUT
+1. Run `npm run build`
+1. Copy the contents of the `out` directory to the S3 bucket `biosecurity-canopy-production-public` and directory `h5n1-map`
+1. Test at https://public.ginkgobiosecurity.com/h5n1-map
 
 ### Update the dataset
 
