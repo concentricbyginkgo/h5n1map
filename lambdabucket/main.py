@@ -151,6 +151,18 @@ def create_json(animal, human, statecodes, countycodes):
     # Rensselear to Rensselaer
     animal_data["county"] = animal_data["county"].str.replace("Rensselear", "Rensselaer")
 
+    # Burnet to Burnett
+    animal_data["county"] = animal_data["county"].str.replace("Burnet", "Burnett")
+
+    # Burnettt to Burnett
+    animal_data["county"] = animal_data["county"].str.replace("Burnettt", "Burnett")
+    
+    # St Mary's MD to St Mary
+    animal_data.loc[
+        (animal_data["county"] == "St Mary's") & (animal_data["state"] == "Maryland"),
+        "county",
+    ] = "St Mary"
+
     # Wanship to Summit (Wanship is a census-designated place in Summit County, Utah)
     animal_data.loc[
         (animal_data["county"] == "Wanship") & (animal_data["state"] == "Utah"),
@@ -167,7 +179,7 @@ def create_json(animal, human, statecodes, countycodes):
 
     # state : 51, 50 states and DC
     
-    # we can remove guid column, it represents the same as year
+    # we can remove guid column``, it represents the same as year
     human_data["event"] = human_data["event"].str.replace("Novel Influenza A (H5N1)_United States_", "")
     human_data.drop("event_guid", axis=1, inplace=True)
 
@@ -345,7 +357,11 @@ def create_json(animal, human, statecodes, countycodes):
 
         if county == "":
             if row.source != "Dairy Farms" and row.source != "Human":
-                raise ValueError("county is empty")
+                print("Failed to find county code for row")
+                print(row.source, row.county, row.abbreviation, row.id)
+                # remove row
+                continue
+                # raise ValueError("county is empty")
 
         # Initialize the nested dictionary if it doesn't exist
         if county not in json_data:
@@ -406,4 +422,7 @@ def lambda_handler(event, context):
         }
 
 if __name__ == "__main__":
-    main()
+    js = create_json('./' + animalFile, './' + humanFile, './' + statecodesFile, './' + countycodesFile)
+
+    with open('./' + combined_file, 'w') as f:
+        json.dump(js, f, indent=4)
