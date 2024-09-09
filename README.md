@@ -1,19 +1,32 @@
-## README
+# H5N1 Map
+
+H5N1 interactive map that can be embedded in other websites. Created for use by marketing.
+
+# Simplest Path:
+
+    npm run dev
+
+# build static site in /h5n1-map/
+
+    npm run build
 
 Run this:
 
     npm run build
 
-to create the /out/ dir with the static site inside.
+to create the /h5n1-map/h5n1-map/ dir with the static site inside.
 To test, use node http-server package, run two servers after building:
 
-    cd .\out\
-    http-server -p 3000
+    cd .\h5n1-map\
+    http-server -p 3000 
 
-and 
+will serve the static site on localhost:3000/h5n1-map
+and
 
     cd .\lambdabucket\
-    http-server-p 3001 --cors -c-1
+    http-server -p 3001 --cors -c-1
+
+will host the files at http://localhost:3001/, which can be used for testing by changing the .env file to point to this before building.
 
 ## Data
 
@@ -46,7 +59,26 @@ The permission policy should include s3 GetObject and PutObject for source and d
 
 The lambda function needs the trigger set to S3 All object create event.
 
-# Notes
+### Build and Deploy
+
+1. Run `npm run build`
+1. Copy the contents of the `h5n1-map` directory to the S3 bucket `biosecurity-canopy-production-public` and directory `h5n1-map`
+1. Test at https://public.ginkgobiosecurity.com/h5n1-map
+
+### Update the dataset
+
+1. Data is updated from any upload to the source bucket
+1. Data can have a lot of spelling errors, which block matching to a county code. I decided against fuzzy matching to avoid false positives, so we can just drop and report these errors.
+1. The lambda funtion could be updated with more exceptions, but it is probably better to just fix the data.
+
+1. Build and test locally
+1. Use npm run dev to prototype,
+2. Try to npm run build, and then launch the two simple servers to test the built product.
+
+1. Build and deploy to prod
+1. npm run build, and then copy the contents of the h5n1-map directory (the static site) to the S3 bucket.
+
+## Misc Notes
 
 For the U.S. Census county codes (FIPS codes) used in this file to identify individual counties, see this link:
 
