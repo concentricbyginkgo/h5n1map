@@ -1,7 +1,5 @@
 'use client';
 
-import getData from "@/components/utils/data";
-
 import React from 'react';
 
 import Div100vh from 'react-div-100vh';
@@ -243,4 +241,4 @@ export default function Container({ allData, lastUpdated, showLastUpdated }) {
             </Div100vh>
         </div >
     );
-};
+};``
