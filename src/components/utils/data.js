@@ -26,7 +26,7 @@ export default async function getData() {
             console.log('Data fetched from bucket with last updated: ' + updated)
 
             const data = await res.json()
-            return[data, updated, false]
+            return[data, updated, process.env.NEXT_PUBLIC_USE_LAST_UPDATED === 'true']
         } else {
             console.log('Response was not 200, using backup data')
             return [backupData, lastUpdated, true]

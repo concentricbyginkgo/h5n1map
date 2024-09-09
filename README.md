@@ -31,6 +31,8 @@ will host the files at http://localhost:3001/, which can be used for testing by 
 ## Data
 
 This app will use hardcoded backup data in /public/data/ if the data URL from the .env is not available to be fetched.
+The link in .env does need a trailing slash
+and, there is an option to hide the last updated date if the fetch succeeds.
 
 # S3 setup!
 
