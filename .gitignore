@@ -15,6 +15,7 @@
 
 # production
 /build
+/h5n1-map
 
 # misc
 .DS_Store
