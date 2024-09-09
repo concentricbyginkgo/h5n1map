@@ -4,6 +4,8 @@
 const nextConfig = {
     /* config options here */
     output: 'export',
+    basePath: '/h5n1-map',
+    distDir: 'h5n1-map/h5n1-map',
     webpack: (config, options) => {
         config.module.rules.push({
             test: /\.csv$/,
