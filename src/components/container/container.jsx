@@ -1,4 +1,5 @@
 'use client';
+
 import React from 'react';
 
 import Div100vh from 'react-div-100vh';
@@ -183,27 +184,27 @@ function dataIngest(data) {
     });
 
     //get the dairy farm date
-    for (const source of Object.keys(data[''])) {
-        if (source == 'Dairy Farms') {
-            for (const line of data[''][source]) {
-                const date = extractDate(true, line.split(','));
-                if (date > dates[source]) {
-                    dates[source] = date;
+    if (data[''] != undefined) {
+        for (const source of Object.keys(data[''])) {
+            if (source == 'Dairy Farms') {
+                for (const line of data[''][source]) {
+                    const date = extractDate(true, line.split(','));
+                    if (date > dates[source]) {
+                        dates[source] = date;
+                    }
                 }
             }
         }
     }
 
-
     return [maxes, legendOptions, wildlifeOptions, dates];
 }
 
 
-export default function Container({ allData }) {
+export default function Container({ allData, lastUpdated, showLastUpdated }) {
     // map container has the controls and the key for the map
      
     if (Object.keys(allData).length === 0) {
-        console.log('No Data!');
         return <div>
             <LoadingOverlay loading={true} />
         </div>;
@@ -226,7 +227,7 @@ export default function Container({ allData }) {
                 <Map setLoading={setLoading} selectedLegend={selectedLegend} selectedWildlife={selectedWildlife} allData={allData} color={selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} max={max} dairydata={getDairyData(allData)} />
             </div>
             <Div100vh className={styles.fg}>
-                <Title />
+                <Title {...{ lastUpdated, showLastUpdated }} />
                 <Key max={max} keyColor={selectedLegend == 'All Cases' ? keyColor : keyColor[selectedLegend]} keyType={selectedLegend == 'All Cases' ? keyType : keyType[selectedLegend]}
                     selected={selectedLegend == 'All Cases' ?  // if selectedLegend is 'All Cases' then show all the options
                         LegendOptions :
@@ -240,4 +241,4 @@ export default function Container({ allData }) {
             </Div100vh>
         </div >
     );
-};
+};``
