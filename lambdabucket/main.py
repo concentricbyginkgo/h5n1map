@@ -184,7 +184,7 @@ def create_json(animal, human, statecodes, countycodes):
     # human_data.drop("event_guid", axis=1, inplace=True)
 
     # can remove these columns, its all influenza
-    human_data.drop(["event", "pathogen"], axis=1, inplace=True)
+    human_data.drop(["pathogen"], axis=1, inplace=True)
 
     # change date reported to match animal data
     human_data.rename(columns={"date_reported": "date_detected"}, inplace=True)
@@ -357,8 +357,7 @@ def create_json(animal, human, statecodes, countycodes):
 
         if county == "":
             if row.source != "Dairy Farms" and row.source != "Human":
-                print("Failed to find county code for row")
-                print(row.source, row.county, row.abbreviation, row.id)
+                print("Failed to find county code for:", row.source, row.county, row.abbreviation, row.id)
                 # remove row
                 continue
                 # raise ValueError("county is empty")
