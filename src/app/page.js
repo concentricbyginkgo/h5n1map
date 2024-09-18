@@ -5,7 +5,6 @@ import getData from "@/components/utils/data";
 import { useState, useEffect } from 'react';
 
 export const dynamic = 'force-static';
-export const revalidate = 60; // cache control 
 
 export default function Home() {
   const [allData, setAllData] = useState({});
